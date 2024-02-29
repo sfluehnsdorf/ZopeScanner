@@ -1,0 +1,54 @@
+<dtml-let
+  path="REQUEST.get( 'path', '' )"
+  report="scan_module( path )"
+  breadcrumbs="report[ 'breadcrumbs' ]"
+  >
+<dtml-var manage_page_header>
+<dtml-var manage_tabs>
+<dtml-var scanner_css>
+
+<h2>Module Scanner</h2>
+<dtml-var breadcrumbs_html>
+
+<dtml-if path>
+<dtml-var report_form>
+<dtml-else>
+
+<h3>Modules</h3>
+abc
+<p class="pad">
+<dtml-in "report[ 'modules' ]" prefix=rootmodule sort>
+  <a href="#<dtml-var rootmodule_key>" onclick="showpanel( '#panel_<dtml-var "jsify( rootmodule_key )">' );"><dtml-var rootmodule_key></a><dtml-unless rootmodule_end>,</dtml-unless>
+</dtml-in>
+</p>
+xyz
+
+<dtml-in "report[ 'modules' ]" prefix=rootmodule sort>
+<h3>
+  <a name="<dtml-var rootmodule_key>"></a><dtml-var rootmodule_key>
+  <a id="panel_<dtml-var "jsify( rootmodule_key )">_switch" class="panel" href="#<dtml-var rootmodule_key>" onclick="togglepanel( '#panel_<dtml-var "jsify( rootmodule_key )">' );"></a>
+</h3>
+<div class="box panel" id="panel_<dtml-var "jsify( rootmodule_key )">">
+  <table width="100%" cellspacing="0" cellpadding="2" border="0">
+    <tr class="list-header">
+      <th align="left" valign="bottom" width="20%"><div class="list-item">Id</div></th>
+      <th align="left" valign="bottom"><div class="list-item">Module</div></th>
+      <th align="left" valign="bottom"><div class="list-item">File</div></th>
+    </tr>
+<dtml-in rootmodule_item prefix=submodule>
+    <tr class="hover <dtml-if sequence-odd>row-normal<dtml-else>row-hilite</dtml-if>">
+      <th align="left" valign="top"><div class="list-item"><a href="&dtml-scanner_url;/scan_module_form?path=<dtml-var submodule_key>"><dtml-var submodule_key></a></div></td>
+      <td align="left" valign="top"><div class="list-item"><dtml-var "submodule_item[ 1 ]"></div></td>
+      <td align="left" valign="top"><div class="list-item"><dtml-var "submodule_item[ 2 ]"></div></td>
+    </tr>
+</dtml-in>
+  </table>
+</div>
+<p class="top"><a href="#">Back to top</a></p>
+</dtml-in>
+
+</dtml-if>
+
+<dtml-var scanner_js>
+<dtml-var manage_page_footer>
+</dtml-let>

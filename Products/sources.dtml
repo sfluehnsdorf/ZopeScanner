@@ -1,0 +1,177 @@
+<dtml-let
+  path="REQUEST.get( 'path', '' )"
+  report="scan_source( path )"
+  breadcrumbs="report[ 'breadcrumbs' ]"
+  >
+<dtml-var manage_page_header>
+<dtml-var manage_tabs>
+<dtml-var scanner_css>
+
+<h2>Source Scanner</h2>
+<dtml-var breadcrumbs_html>
+
+<dtml-if path>
+
+<form action="<dtml-var scanner_url>/scan_source_form" method="post">
+  <div class="box">
+    <table width="100%" cellspacing="0" cellpadding="2" border="0">
+      <tr class="list-header">
+        <th align="left" valign="top" nowrap><div class="list-item">Root Directory</div></th>
+        <th align="left" valign="top" nowrap><div class="list-item">Breadcrumb Trail</div></th>
+      </tr>
+      <tr class="row-hilite">
+        <td align="left" valign="top"><div class="list-item">
+          <select name="path" onChange="form.submit()">
+            <option value="instance"<dtml-if "path.startswith( 'instance' )"> selected</dtml-if>>INSTANCE HOME</option>
+            <option value="software"<dtml-if "path.startswith( 'software' )"> selected</dtml-if>>SOFTWARE HOME</option>
+            <option value="zope"<dtml-if "path.startswith( 'zope' )"> selected</dtml-if>>Zope Server Code</option>
+            <option value="python"<dtml-if "path.startswith( 'python' )"> selected</dtml-if>>Python Module Code</option>
+          </select>
+        </div></td>
+        <td align="left" valign="top" width="100%"><div class="list-item">
+          Directory Tree:
+<dtml-in "report[ 'path_parts' ]" prefix=part>
+          <dtml-unless part_start>/</dtml-unless> <a href="<dtml-var scanner_url>/scan_source_form?path=<dtml-var part_key>"><dtml-var part_item></a>
+</dtml-in>
+        </div></td>
+      </tr>
+    </table>
+  </div>
+</form>
+
+<dtml-let result="scan_source_file( path )">
+<dtml-if "result.get( 'message', None )">
+
+<h3>Error</h3>
+<p class="pad error"><dtml-var "result[ 'message' ]"></p>
+
+<dtml-elif "result[ 'filetype' ] == 'dir'">
+
+<h3>Directory</h3>
+<div class="box">
+  <table width="100%" cellspacing="0" cellpadding="2" border="0">
+    <tr class="list-header">
+      <th align="left" valign="top" nowrap width="100%"><div class="list-item">File Name</div></th>
+      <th align="left" valign="top" nowrap><div class="list-item">File Type</div></th>
+      <th align="right" valign="top"><div class="list-item">Size</div></th>
+      <th align="right" valign="top"><div class="list-item">Accessed</div></th>
+      <th align="right" valign="top"><div class="list-item">Modified</div></th>
+      <th align="right" valign="top"><div class="list-item">Created</div></th>
+    </tr>
+<dtml-in "result[ 'contents' ]" prefix=file mapping sort=filename>
+    <tr class="<dtml-if sequence-odd>row-normal<dtml-else>row-hilite</dtml-if>">
+      <th align="left" valign="top" nowrap><div class="list-item"><a href="<dtml-var scanner_url>/scan_source_form?path=<dtml-var path url_quote>/<dtml-var filename>"><dtml-var filename></a></div></td>
+      <td align="left" valign="top" nowrap><div class="list-item"><dtml-var filetype></div></td>
+      <td align="right" valign="top" nowrap><div class="list-item"><dtml-var size></div></td>
+      <td align="right" valign="top" nowrap><div class="list-item"><dtml-var atime></div></td>
+      <td align="right" valign="top" nowrap><div class="list-item"><dtml-var mtime></div></td>
+      <td align="right" valign="top" nowrap><div class="list-item"><dtml-var ctime></div></td>
+    </tr>
+</dtml-in>
+  </table>
+</div>
+
+<dtml-elif "result[ 'filetype' ] == 'txt'">
+
+<h3>Plain Text File</h3>
+<div class="code form-mono">
+  <pre><dtml-var "result[ 'contents' ]" html_quote></pre>
+</div>
+
+<dtml-elif "result[ 'filetype' ] == 'img'">
+
+<h3>Image File</h3>
+<div class="box">
+  <div style="height: <dtml-var "int( REQUEST.get( 'dtpref_rows', '20' ) ) * 20">px; background: url(image_bg_image); overflow: auto;">
+
+    <table width="100%" height="100%" cellspacing="0" cellpadding="0" border="0">
+      <tr height="50%">
+        <td align="right" valign="bottom" width="50%"><img src="image_tl_image"></td>
+        <td></td>
+        <td align="left" valign="bottom" width="50%"><img src="image_tr_image"></td>
+      </tr>
+      <tr>
+        <td></td>
+        <td><img src="<dtml-var scanner_url>/retrieve_source_file?path=<dtml-var path url_quote>" border="1" /></td>
+        <td></td>
+      </tr>
+      <tr height="50%">
+        <td align="right" valign="top"><img src="image_bl_image"></td>
+        <td></td>
+        <td align="left" valign="top"><img src="image_br_image"></td>
+      </tr>
+    </table>
+
+  </div>
+</div>
+
+<dtml-else>
+
+<h3>Binary File Hexdump</h3>
+<dtml-let contents="result[ 'contents' ]" displayableASCIICodes="range( 32, 127 )">
+<div class="box">
+  <table cellspacing="0" cellpadding="2" border="0">
+    <tr class="list-header">
+      <th align="right" valign="top"><div class="list-item">Byte</div></th>
+      <th><div class="list-item">&nbsp;</div></th>
+      <th align="right" valign="top"><div class="list-item">0</div></th>
+      <th align="right" valign="top"><div class="list-item">1</div></th>
+      <th align="right" valign="top"><div class="list-item">2</div></th>
+      <th align="right" valign="top"><div class="list-item">3</div></th>
+      <th align="right" valign="top"><div class="list-item">4</div></th>
+      <th align="right" valign="top"><div class="list-item">5</div></th>
+      <th align="right" valign="top"><div class="list-item">6</div></th>
+      <th align="right" valign="top"><div class="list-item">7</div></th>
+      <th><div class="list-item">&nbsp;</div></th>
+      <th align="right" valign="top"><div class="list-item">8</div></th>
+      <th align="right" valign="top"><div class="list-item">9</div></th>
+      <th align="right" valign="top"><div class="list-item">A</div></th>
+      <th align="right" valign="top"><div class="list-item">B</div></th>
+      <th align="right" valign="top"><div class="list-item">C</div></th>
+      <th align="right" valign="top"><div class="list-item">D</div></th>
+      <th align="right" valign="top"><div class="list-item">E</div></th>
+      <th align="right" valign="top"><div class="list-item">F</div></th>
+      <th><div class="list-item">&nbsp;</div></th>
+      <th align="left" valign="top"><div class="list-item">ASCII</div></th>
+      <th width="100%"><div class="list-item">&nbsp;</div></th>
+    </tr>
+<dtml-in "range( 0, len( contents ), 16 )" prefix=pos>
+    <tr class="<dtml-if sequence-odd>row-normal<dtml-else>row-hilite</dtml-if>">
+      <th align="right" valign="top"><div class="list-item"><dtml-var "pos_index * 16"></div></th>
+      <td>&nbsp;</td>
+<dtml-in "range( 0, 16 )" prefix=subpos>
+      <td align="right" valign="top"><div class="list-item"><dtml-if "pos_item + subpos_item < len( contents )"><dtml-var "'%02x' % ord( contents[ pos_item + subpos_item ] )"><dtml-else>&nbsp;</dtml-if></div></td>
+<dtml-if "subpos_index == 7">
+      <td>&nbsp;</td>
+</dtml-if>
+</dtml-in>
+      <td>&nbsp;</td>
+      <td align="left" valign="top"><div class="form-mono"><pre><dtml-in "range( 0, 16 )" prefix=subpos><dtml-if "pos_item + subpos_item < len( contents )"><dtml-if "ord( contents[ pos_item + subpos_item ] ) in displayableASCIICodes"><dtml-var "contents[ pos_item + subpos_item ]" html_quote><dtml-else>.</dtml-if><dtml-else>&nbsp;</dtml-if></dtml-in></pre></div></td>
+      <td><div class="list-item">&nbsp;</div></td>
+    </tr>
+</dtml-in>
+  </table>
+</div>
+</dtml-let>
+
+</dtml-if>
+</dtml-let>
+
+<dtml-else>
+
+<dl>
+  <dt><a href="&dtml-scanner_url;/scan_source_form?path=instance">INSTANCE HOME</a></dt>
+  <dd>Browse the source files of this Zope server's instance.</dd>
+  <dt><a href="&dtml-scanner_url;/scan_source_form?path=software">SOFTWARE HOME</a></dt>
+  <dd>Browse the source files of this Zope server's Python code base.</dd>
+  <dt><a href="&dtml-scanner_url;/scan_source_form?path=zope">Zope Server Code</a></dt>
+  <dd>Browse the source files of this Zope server's code base root.</dd>
+  <dt><a href="&dtml-scanner_url;/scan_source_form?path=python">Python Module Code</a></dt>
+  <dd>Browse the source files of the Python module code base.</dd>
+</dl>
+
+</dtml-if>
+
+<dtml-var scanner_js>
+<dtml-var manage_page_footer>
+</dtml-let>

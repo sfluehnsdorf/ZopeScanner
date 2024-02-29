@@ -1,0 +1,109 @@
+<dtml-let breadcrumbs="[ breadcrumbs_root, ]">
+<dtml-var manage_page_header>
+<dtml-var manage_tabs>
+<dtml-var scanner_css>
+
+<h2>ZopeScanner</h2>
+
+<dtml-var breadcrumbs_html>
+
+<div style="width: 100%; height: 160px; overflow: hidden;">
+<div style="margin: 0 -10px; background: url(banner_bg_image); height: 160px; text-align: right;">
+  <img src="banner_fg_image" lowsrc="banner_fg_low_image">
+</div>
+</div>
+
+<table width="100%" cellspacing="0" cellpadding="2" border="0">
+  <tr>
+    <td align="left" valign="top" width="50%">
+
+      <h3>Available Scanners</h3>
+      <dl>
+        <dt><a href="scan_config_form">Config</a></dt>
+        <dd>
+          Scan the Zope server's configuration object which specifies behaviour of the Zope server.
+          Values in the configuration are set by the server's zope.conf file or from the defaults.
+        </dd>
+        <dt><a href="scan_server_form">Servers</a></dt>
+        <dd>
+          Scan the Zope server's active servers.
+        </dd>
+        <dt><a href="scan_product_form">Products</a></dt>
+        <dd>
+          Scan the Zope server's installed Products.
+        </dd>
+        <dt><a href="scan_object_form">Objects</a></dt>
+        <dd>
+          Scan the Zope server's object file system (OFS), starting with the server's root object.
+        </dd>
+        <dt><a href="scan_module_form">Modules</a></dt>
+        <dd>
+          Scan the Python module in the Zope server's module namespace.
+          This includes all modules provided by Zope and Python, used to run the Zope server.
+        </dd>
+        <dt><a href="scan_source_form">Sources</a></dt>
+        <dd>
+          Browse the source files in the <a href="&dtml-scanner_url;/scan_source_form?path=instance">INSTANCE HOME</a>, <a href="&dtml-scanner_url;/scan_source_form?path=software">SOFTWARE HOME</a>, <a href="&dtml-scanner_url;/scan_source_form?path=zope">Zope Server Code</a> and <a href="&dtml-scanner_url;/scan_source_form?path=python">Python Module Code</a>.
+          This file browser allows to browse directories and view the plain text, image and binary files.
+        </dd>
+        <dt><a href="scan_logfile_form">Log Files</a></dt>
+        <dd>
+          Browse the Zope server's log files, the <a href="&dtml-scanner_url;/scan_logfile_form?path=access.log">access log</a>, <a href="&dtml-scanner_url;/scan_logfile_form?path=error.log">error log</a> and the <a href="&dtml-scanner_url;/scan_logfile_form?path=event.log">event log</a>.
+          The log file browser allows to filter the contents of a log file by date and/or keyword.
+        </dd>
+      </dl>
+
+    </td>
+    <td align="left" valign="top" width="50%">
+
+      <h3>Options</h3>
+      <form action="<dtml-var scanner_url>/set_options" method="post">
+        <dl>
+          <dt>
+            <label for="batch_size">Batch Size</label>
+          </dt>
+          <dd>
+            <label for="batch_size">
+              Specify the size for batching:
+            </label>
+            <input type="text" name="batch_size" id="batch_size" value="<dtml-var batch_size>" style="width: 60px; text-align: right;"><br>
+            <label for="batch_size">
+              This value is used as the number of entries for grouped lists (see below) and as the default size for the log file browser.
+            </label>
+          </dd>
+          <dt>
+            <label for="group_lists">Group Long Lists</label>
+          </dt>
+          <dd>
+            <input type="checkbox" name="group_lists" id="group_lists" value="on"<dtml-if group_lists> checked="checked"</dtml-if>>
+            <label for="group_lists">
+              Activate, to group long lists into sets of <dtml-var batch_size>.
+              All grouped lists receive a table of contents, so their contents can be easily accessed.
+              Grouping long lists of information make it easier to navigate them and to find particular values.
+              However, it may be 
+            </label>
+          </dd>
+          <dt>
+            <label for="use_js">Use Javascript</label>
+          </dt>
+          <dd>
+            <input type="checkbox" name="use_js" id="use_js" value="on"<dtml-if use_js> checked="checked"</dtml-if>>
+            <label for="use_js">
+              Activate, to use Javascript for toggling display of particular information.
+              On long pages, sections with information are initially hidden and can be revealed by clicking respective links.
+              If Javascript is deactivated in your browser, the pages will still be displayed correctly, as information is hidden after loading the page using Javascript.
+            </label>
+          </dd>
+        </dl>
+        <p>
+          <input type="submit" value="Save Changes">
+        </p>
+      </form>
+
+    </td>
+  </tr>
+</table>
+
+<dtml-var scanner_js>
+<dtml-var manage_page_footer>
+</dtml-let>

@@ -1,0 +1,98 @@
+<dtml-let
+  path="REQUEST.get( 'path', '' )"
+  report="scan_product( path )"
+  breadcrumbs="report[ 'breadcrumbs' ]"
+  >
+<dtml-var manage_page_header>
+<dtml-var manage_tabs>
+<dtml-var scanner_css>
+
+<h2>Product Scanner</h2>
+<dtml-var breadcrumbs_html>
+
+<dtml-if path>
+<dtml-var report_form>
+<dtml-else>
+
+<h3>Installed Products</h3>
+<div class="box">
+  <table width="100%" cellspacing="0" cellpadding="2" border="0">
+    <tr class="list-header">
+      <th align="left" valign="top" width="20%"><div class="list-item">Product</div></th>
+      <th align="left" valign="top"><div class="list-item">Base Classes</div></th>
+    </tr>
+<dtml-in "report[ 'installedproducts' ]" prefix=product>
+    <tr class="hover <dtml-if product_odd>row-normal<dtml-else>row-hilite</dtml-if>">
+      <th align="left" valign="top" nowrap><div class="list-item"><dtml-var product_key></div></th>
+      <td align="left" valign="top">
+        <div class="list-item">
+<dtml-in product_item prefix=productclass sort>
+          <a href="#<dtml-var productclass_item>" onclick="showpanel( '#panel_<dtml-var "jsify( productclass_item )">' );"><dtml-var productclass_item></a><dtml-unless productclass_end>,</dtml-unless>
+<dtml-else>
+          <em>No Base Classes registered</em>
+</dtml-in>
+        </div>
+      </td>
+</dtml-in>
+  </table>
+</div>
+<p class="top"><a href="#">Back to top</a></p>
+
+<h3>Registered Base Classes</h3>
+<p class="pad">
+<dtml-in "report[ 'baseclasses' ]" prefix=entry mapping>
+  <a href="#<dtml-var key>" onclick="showpanel( '#panel_<dtml-var "jsify( key )">' );"><dtml-var key></a><dtml-unless entry_end>,</dtml-unless>
+</dtml-in>
+</p>
+<dtml-in "report[ 'baseclasses' ]" prefix=entry mapping>
+<h4>
+  <a name="<dtml-var key>"></a>Registered Base <dtml-var name>
+  <a id="panel_<dtml-var "jsify( key )">_switch" class="panel" href="#<dtml-var key>" onclick="togglepanel( '#panel_<dtml-var "jsify( key )">' );"></a>
+</h4>
+<div class="panel box" id="panel_<dtml-var "jsify( key )">">
+  <table width="100%" cellspacing="0" cellpadding="2" border="0">
+    <tr class="list-header">
+      <th align="left" valign="bottom" width="20%"><div class="list-item">Key</div></th>
+      <th align="left" valign="bottom"><div class="list-item">Value</div></th>
+    </tr>
+    <tr class="hover <dtml-if sequence-odd>row-hilite<dtml-else>row-normal</dtml-if>">
+      <th align="left" valign="baseline"><div class="list-item">Product</div></th>
+      <td align="left" valign="baseline"><div class="list-item"><dtml-var product></div></td>
+    </tr>
+    <tr class="hover <dtml-if sequence-odd>row-normal<dtml-else>row-hilite</dtml-if>">
+      <th align="left" valign="baseline"><div class="list-item">Permission</div></th>
+      <td align="left" valign="baseline"><div class="list-item"><dtml-var permission></div></td>
+    </tr>
+    <tr class="hover <dtml-if sequence-odd>row-hilite<dtml-else>row-normal</dtml-if>">
+      <th align="left" valign="baseline"><div class="list-item">Action</div></th>
+      <td align="left" valign="baseline"><div class="list-item"><dtml-var action></div></td>
+    </tr>
+    <tr class="hover <dtml-if sequence-odd>row-normal<dtml-else>row-hilite</dtml-if>">
+      <th align="left" valign="baseline" nowrap><div class="list-item">Container Filter</div></th>
+      <td align="left" valign="baseline"><div class="list-item"><dtml-var container_filter></div></td>
+    </tr>
+    <tr class="hover <dtml-if sequence-odd>row-hilite<dtml-else>row-normal</dtml-if>">
+      <th align="left" valign="baseline"><div class="list-item">Visibility</div></th>
+      <td align="left" valign="baseline"><div class="list-item"><dtml-var visibility></div></td>
+    </tr>
+    <tr class="hover <dtml-if sequence-odd>row-normal<dtml-else>row-hilite</dtml-if>">
+      <th align="left" valign="baseline"><div class="list-item">Instance</div></th>
+      <td align="left" valign="baseline"><div class="list-item"><dtml-var instance></div></td>
+    </tr>
+    <tr class="hover <dtml-if sequence-odd>row-hilite<dtml-else>row-normal</dtml-if>">
+      <th align="left" valign="baseline"><div class="list-item">Interfaces</div></th>
+      <td align="left" valign="baseline"><div class="list-item"><dtml-var interfaces></div></td>
+    </tr>
+  </table>
+</div>
+<p class="top"><a href="#">Back to top</a></p>
+<dtml-else>
+<p><em>No information found...</em></p>
+<p class="top"><a href="#">Back to top</a></p>
+</dtml-in>
+
+</dtml-if>
+
+<dtml-var scanner_js>
+<dtml-var manage_page_footer>
+</dtml-let>

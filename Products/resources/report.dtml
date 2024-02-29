@@ -1,0 +1,581 @@
+<dtml-if "report.has_key( 'object_info' )">
+
+<h3>Table Of Contents</h3>
+<ul class="list">
+  <dtml-if "report[ 'path_info' ]"><li><a class="std-text"      href="#path_info"      onclick="showpanel( '#panel_path_info' );">Path Info</a></li></dtml-if>
+  <dtml-if "report[ 'object_info' ]"><li><a class="std-text"    href="#object_info"    onclick="showpanel( '#panel_object_info' );">Object Info</a></li></dtml-if>
+  <dtml-if "report[ 'sub_objects' ]"><li><a class="std-text"    href="#sub_objects"    onclick="showpanel( '#panel_sub_objects' );">Sub Objects</a></li></dtml-if>
+  <dtml-if "report[ 'manage_options' ]"><li><a class="std-text" href="#manage_options" onclick="showpanel( '#panel_manage_options' );">Management Options</a></li></dtml-if>
+  <dtml-if "report[ 'properties' ]"><li><a class="std-text"     href="#properties"     onclick="showpanel( '#panel_properties' );">Properties</a></li></dtml-if>
+  <dtml-if "report[ 'permissions' ]"><li><a class="std-text"    href="#permissions"    onclick="showpanel( '#panel_permissions' );">Permissions</a></li></dtml-if>
+  <dtml-if "report[ 'roles' ]"><li><a class="std-text"          href="#roles"          onclick="showpanel( '#panel_roles' );">Roles</a></li></dtml-if>
+  <dtml-if "report[ 'ownership' ]"><li><a class="std-text"      href="#ownership"      onclick="showpanel( '#panel_ownership' );">Ownership</a></li></dtml-if>
+  <dtml-if "report[ 'undoable' ]"><li><a class="std-text"       href="#undoable"       onclick="showpanel( '#panel_undoable' );">Undoable Transactions</a></li></dtml-if>
+  <dtml-if "report[ 'history' ]"><li><a class="std-text"        href="#history"        onclick="showpanel( '#panel_history' );">Historic Revisions</a></li></dtml-if>
+  <dtml-if "report[ 'forms_images' ]"><li><a class="std-text"   href="#forms_images"   onclick="showpanel( '#panel_forms_images' );">Form & Image Objects</a></li></dtml-if>
+  <dtml-if "report[ 'callable' ]"><li><a class="std-text"       href="#callable"       onclick="showpanel( '#panel_callable' );">Callable Objects (Functions, Methods, etc.)</a></li></dtml-if>
+  <dtml-if "report[ 'sequence_items' ]"><li><a class="std-text" href="#sequence_items" onclick="showpanel( '#panel_sequence_items' );">Sequence Items</a></li></dtml-if>
+  <dtml-if "report[ 'mapping_items' ]"><li><a class="std-text"  href="#mapping_items"  onclick="showpanel( '#panel_mapping_items' );">Mapping Items</a></li></dtml-if>
+  <dtml-if "report[ 'attr_dict' ]"><li><a class="std-text"      href="#attr_dict"      onclick="showpanel( '#panel_attr_dict' );">Attributes from __dict__</a></li></dtml-if>
+  <dtml-if "report[ 'attr_dir' ]"><li><a class="std-text"       href="#attr_dir"       onclick="showpanel( '#panel_attr_dir' );">Attributes from dir()</a></li></dtml-if>
+</ul>
+
+<dtml-if "report[ 'path_info' ]">
+<h3>
+  <a name="path_info"></a>Path Info
+  <a id="panel_path_info_switch" class="panel" href="#path_info" onclick="togglepanel( '#panel_path_info' );"></a>
+</h3>
+<div class="box panel" id="panel_path_info">
+  <table width="100%" cellspacing="0" cellpadding="2" border="0">
+    <tr class="list-header">
+      <th align="left" valign="bottom" width="20%"><div class="list-item">Key</div></th>
+      <th align="left" valign="bottom" width="20%"><div class="list-item">Id</div></th>
+      <th align="left" valign="bottom"><div class="list-item">Title</div></th>
+    </tr>
+<dtml-in "report[ 'path_info' ]" prefix=entry>
+    <tr class="hover <dtml-if sequence-odd>row-normal<dtml-else>row-hilite</dtml-if>">
+      <th align="left" valign="baseline"><div class="list-item"><a href="<dtml-var entry_key>"><dtml-if "entry_item[ 1 ]"><dtml-var "entry_item[ 1 ]"><dtml-else><em>Unnamed</em></dtml-if></a></div></td>
+      <td align="left" valign="baseline"><div class="list-item"><dtml-var "entry_item[ 3 ]"></div></td>
+      <td align="left" valign="baseline"><div class="list-item"><dtml-var "entry_item[ 4 ]"></div></td>
+    </tr>
+</dtml-in>
+  </table>
+</div>
+<p class="top"><a href="#">Back to top</a></p>
+</dtml-if>
+
+<dtml-if "report[ 'object_info' ]">
+<h3>
+  <a name="object_info"></a>Object Info
+  <a id="panel_object_info_switch" class="panel" href="#object_info" onclick="togglepanel( '#panel_object_info' );"></a>
+</h3>
+<div class="box panel" id="panel_object_info">
+  <table width="100%" cellspacing="0" cellpadding="2" border="0">
+    <tr class="list-header">
+      <th align="left" valign="bottom" width="20%"><div class="list-item">Key</div></th>
+      <th align="left" valign="bottom"><div class="list-item">Value</div></th>
+    </tr>
+<dtml-in "report[ 'object_info' ]" prefix=entry>
+    <tr class="hover <dtml-if sequence-odd>row-normal<dtml-else>row-hilite</dtml-if>">
+      <th align="left" valign="baseline"><div class="list-item"><dtml-var entry_key></div></td>
+      <td align="left" valign="baseline"><div class="list-item"><dtml-var entry_item></div></td>
+    </tr>
+</dtml-in>
+  </table>
+</div>
+<p class="top"><a href="#">Back to top</a></p>
+</dtml-if>
+
+<dtml-if "report[ 'sub_objects' ]">
+<h3>
+  <a name="sub_objects"></a>Sub Objects
+  <a id="panel_sub_objects_switch" class="panel" href="#sub_objects" onclick="togglepanel( '#panel_sub_objects' );"></a>
+</h3>
+<dtml-if group_lists>
+<div class="panel" id="panel_sub_objects">
+<dtml-let groups="group_list( report[ 'sub_objects' ] )">
+  <ul class="list">
+<dtml-in groups prefix=group>
+    <li><a href="#sub_objects_<dtml-var "group_item[ 0 ]">"><dtml-var "group_item[ 1 ]"></a></li>
+</dtml-in>
+  </ul>
+<dtml-in groups prefix=group>
+  <h4><a name="sub_objects_<dtml-var "group_item[ 0 ]">"></a>Sub Objects (<dtml-var "group_item[ 1 ]">)</h4>
+  <div class="box">
+    <table width="100%" cellspacing="0" cellpadding="2" border="0">
+      <tr class="list-header">
+        <th align="left" valign="top"><div class="list-item">Key</div></th>
+        <th align="left" valign="top" width="80%"><div class="list-item">Value</div></th>
+      </tr>
+<dtml-in "group_item[ 2 ]" prefix=entry>
+      <tr class="<dtml-if sequence-odd>row-normal<dtml-else>row-hilite</dtml-if>">
+        <th align="left" valign="top"><div class="list-item"><dtml-var entry_key></div></td>
+        <td align="left" valign="top"><div class="list-item"><dtml-var entry_item></div></td>
+      </tr>
+</dtml-in>
+    </table>
+  </div>
+</dtml-in>
+</dtml-let>
+</div>
+<dtml-else>
+<div class="box panel" id="panel_sub_objects">
+  <table width="100%" cellspacing="0" cellpadding="2" border="0">
+    <tr class="list-header">
+      <th align="left" valign="top"><div class="list-item">Key</div></th>
+      <th align="left" valign="top" width="80%"><div class="list-item">Value</div></th>
+    </tr>
+<dtml-in "report[ 'sub_objects' ]" prefix=entry>
+    <tr class="<dtml-if sequence-odd>row-normal<dtml-else>row-hilite</dtml-if>">
+      <th align="left" valign="top"><div class="list-item"><dtml-var entry_key></div></td>
+      <td align="left" valign="top"><div class="list-item"><dtml-var entry_item></div></td>
+    </tr>
+</dtml-in>
+  </table>
+</div>
+</dtml-if>
+<p class="top"><a href="#">Back to top</a></p>
+</dtml-if>
+
+<dtml-if "report[ 'manage_options' ]">
+<h3>
+  <a name="manage_options"></a>Management Options
+  <a id="panel_manage_options_switch" class="panel" href="#manage_options" onclick="togglepanel( '#panel_manage_options' );"></a>
+</h3>
+<div class="box panel" id="panel_manage_options">
+  <table width="100%" cellspacing="0" cellpadding="2" border="0">
+    <tr class="list-header">
+      <th align="left" valign="top"><div class="list-item">Key</div></th>
+      <th align="left" valign="top" width="80%"><div class="list-item">Value</div></th>
+    </tr>
+<dtml-in "report[ 'manage_options' ]" prefix=entry>
+    <tr class="<dtml-if sequence-odd>row-normal<dtml-else>row-hilite</dtml-if>">
+      <th align="left" valign="top"><div class="list-item"><dtml-var entry_key></div></td>
+      <td align="left" valign="top"><div class="list-item"><dtml-var entry_item></div></td>
+    </tr>
+</dtml-in>
+  </table>
+</div>
+<p class="top"><a href="#">Back to top</a></p>
+</dtml-if>
+
+<dtml-if "report[ 'properties' ]">
+<h3>
+  <a name="properties"></a>Properties
+  <a id="panel_properties_switch" class="panel" href="#properties" onclick="togglepanel( '#panel_properties' );"></a>
+</h3>
+<div class="box panel" id="panel_properties">
+  <table width="100%" cellspacing="0" cellpadding="2" border="0">
+    <tr class="list-header">
+      <th align="left" valign="top"><div class="list-item">Key</div></th>
+      <th align="left" valign="top" width="80%"><div class="list-item">Value</div></th>
+    </tr>
+<dtml-in "report[ 'properties' ]" prefix=entry>
+    <tr class="<dtml-if sequence-odd>row-normal<dtml-else>row-hilite</dtml-if>">
+      <th align="left" valign="top"><div class="list-item"><dtml-var entry_key></div></td>
+      <td align="left" valign="top"><div class="list-item"><dtml-var entry_item></div></td>
+    </tr>
+</dtml-in>
+  </table>
+</div>
+<p class="top"><a href="#">Back to top</a></p>
+</dtml-if>
+
+<dtml-if "report[ 'permissions' ]">
+<h3>
+  <a name="permissions"></a>Permissions
+  <a id="panel_permissions_switch" class="panel" href="#permissions" onclick="togglepanel( '#panel_permissions' );"></a>
+</h3>
+<dtml-if group_lists>
+<div class="panel" id="panel_permissions">
+<dtml-let data="report[ 'permissions' ]" labels="data[ 0 ]" groups="group_list( data[ 1: ] )">
+  <ul class="list">
+<dtml-in groups prefix=group>
+    <li><a href="#permissions_<dtml-var "group_item[ 0 ]">"><dtml-var "group_item[ 1 ]"></a></li>
+</dtml-in>
+  </ul>
+<dtml-in groups prefix=group>
+  <h4><a name="permissions_<dtml-var "group_item[ 0 ]">"></a>Permissions (<dtml-var "group_item[ 1 ]">)</h4>
+  <div class="box">
+    <table width="100%" cellspacing="0" cellpadding="2" border="0">
+      <tr class="list-header">
+        <th align="left" valign="top" width="20%"><div class="list-item">Permission</div></th>
+        <th align="left" valign="top" width="20%"><div class="list-item">Aquired</div></th>
+<dtml-in labels prefix=label>
+        <th align="left" valign="top"><div class="list-item"><dtml-var label_item></div></th>
+</dtml-in>
+      </tr>
+<dtml-in "group_item[ 2 ]" prefix=permission>
+      <tr class="<dtml-if sequence-odd>row-normal<dtml-else>row-hilite</dtml-if>">
+        <th align="left" valign="baseline" nowrap><div class="list-item"><dtml-var permission_key></div></td>
+        <td align="left" valign="baseline"><div class="list-item"><em><dtml-if "permission_item[ 1 ]">Acquired<dtml-else>-</dtml-if></em></div></td>
+<dtml-in labels prefix=label>
+        <td align="left" valign="baseline"><div class="list-item"><dtml-if "label_item in permission_item[ 2 ]"><dtml-var label_item><dtml-else>-</dtml-if></div></td>
+</dtml-in>
+      </tr>
+</dtml-in>
+    </table>
+  </div>
+  <p class="top"><a href="#callable">Back to Permissions</a></p>
+</dtml-in>
+</dtml-let>
+</div>
+<dtml-else>
+<dtml-let data="report[ 'permissions' ]" labels="data[ 0 ]" permissions="data[ 1: ]">
+<div class="box panel" id="panel_permissions">
+  <table width="100%" cellspacing="0" cellpadding="2" border="0">
+    <tr class="list-header">
+      <th align="left" valign="top" width="20%"><div class="list-item">Permission</div></th>
+      <th align="left" valign="top" width="20%"><div class="list-item">Aquired</div></th>
+<dtml-in labels prefix=label>
+      <th align="left" valign="top"><div class="list-item"><dtml-var label_item></div></th>
+</dtml-in>
+    </tr>
+<dtml-in permissions prefix=permission>
+    <tr class="<dtml-if sequence-odd>row-normal<dtml-else>row-hilite</dtml-if>">
+      <th align="left" valign="baseline" nowrap><div class="list-item"><dtml-var permission_key></div></td>
+      <td align="left" valign="baseline"><div class="list-item"><em><dtml-if "permission_item[ 1 ]">Acquired<dtml-else>-</dtml-if></em></div></td>
+<dtml-in labels prefix=label>
+      <td align="left" valign="baseline"><div class="list-item"><dtml-if "label_item in permission_item[ 2 ]"><dtml-var label_item><dtml-else>-</dtml-if></div></td>
+</dtml-in>
+    </tr>
+</dtml-in>
+  </table>
+</div>
+</dtml-let>
+</dtml-if>
+<p class="top"><a href="#">Back to top</a></p>
+</dtml-if>
+
+<dtml-if "report[ 'roles' ]">
+<h3>
+  <a name="roles"></a>Roles
+  <a id="panel_roles_switch" class="panel" href="#roles" onclick="togglepanel( '#panel_roles' );"></a>
+</h3>
+<div class="box panel" id="panel_roles">
+  <table width="100%" cellspacing="0" cellpadding="2" border="0">
+    <tr class="list-header">
+      <th align="left" valign="top" width="20%"><div class="list-item">Role</div></th>
+      <th align="left" valign="top" colspan="2"><div class="list-item">Permissions</div></th>
+    </tr>
+<dtml-in "report[ 'roles' ]" prefix=entry>
+    <tr class="<dtml-if sequence-odd>row-normal<dtml-else>row-hilite</dtml-if>">
+      <th align="left" valign="baseline" rowspan="3"><div class="list-item"><dtml-var entry_key></div></td>
+      <th align="left" valign="baseline"><div class="list-item">Aquired</div></td>
+      <td align="left" valign="baseline"><div class="list-item"><dtml-if "entry_item[ 1 ]"><ul class="floatlist"><dtml-in "entry_item[ 1 ]" prefix=permission><li><nobr><dtml-var permission_item></nobr></li></dtml-in></ul><br clear="left"><dtml-else>&nbsp;</dtml-if></div></td>
+    </tr>
+    <tr class="<dtml-if sequence-odd>row-normal<dtml-else>row-hilite</dtml-if>">
+      <th align="left" valign="baseline"><div class="list-item">Assigned</div></td>
+      <td align="left" valign="baseline"><div class="list-item"><dtml-if "entry_item[ 2 ]"><ul class="floatlist"><dtml-in "entry_item[ 2 ]" prefix=permission><li><nobr><dtml-var permission_item></nobr></li></dtml-in></ul><br clear="left"><dtml-else>&nbsp;</dtml-if></div></td>
+    </tr>
+    <tr class="<dtml-if sequence-odd>row-normal<dtml-else>row-hilite</dtml-if>">
+      <th align="left" valign="baseline"><div class="list-item">Unset</div></td>
+      <td align="left" valign="baseline"><div class="list-item"><dtml-if "entry_item[ 3 ]"><ul class="floatlist"><dtml-in "entry_item[ 3 ]" prefix=permission><li><nobr><dtml-var permission_item></nobr></li></dtml-in></ul><br clear="left"><dtml-else>&nbsp;</dtml-if></div></td>
+    </tr>
+</dtml-in>
+  </table>
+</div>
+<p class="top"><a href="#">Back to top</a></p>
+</dtml-if>
+
+<dtml-if "report[ 'ownership' ]">
+<h3>
+  <a name="ownership"></a>Ownership
+  <a id="panel_ownership_switch" class="panel" href="#ownership" onclick="togglepanel( '#panel_ownership' );"></a>
+</h3>
+<div class="box panel" id="panel_ownership">
+  <table width="100%" cellspacing="0" cellpadding="2" border="0">
+    <tr class="list-header">
+      <th align="left" valign="top" width="20%"><div class="list-item">Key</div></th>
+      <th align="left" valign="top"><div class="list-item">Value</div></th>
+    </tr>
+<dtml-in "report[ 'ownership' ]" prefix=entry>
+    <tr class="<dtml-if sequence-odd>row-normal<dtml-else>row-hilite</dtml-if>">
+      <th align="left" valign="top"><div class="list-item"><dtml-var entry_key></div></td>
+      <td align="left" valign="top"><div class="list-item"><dtml-var entry_item></div></td>
+    </tr>
+</dtml-in>
+  </table>
+</div>
+<p class="top"><a href="#">Back to top</a></p>
+</dtml-if>
+
+<dtml-if "report[ 'undoable' ]">
+<h3>
+  <a name="undoable"></a>Undoable Transactions
+  <a id="panel_undoable_switch" class="panel" href="#undoable" onclick="togglepanel( '#panel_undoable' );"></a>
+</h3>
+<div class="box panel" id="panel_undoable">
+  <table width="100%" cellspacing="0" cellpadding="2" border="0">
+    <tr class="list-header">
+      <th align="left" valign="top" width="20%"><div class="list-item">Key</div></th>
+      <th align="left" valign="top"><div class="list-item">Value</div></th>
+    </tr>
+<dtml-in "report[ 'undoable' ]" prefix=entry>
+    <tr class="<dtml-if sequence-odd>row-normal<dtml-else>row-hilite</dtml-if>">
+      <th align="left" valign="top"><div class="list-item"><dtml-var entry_key></div></td>
+      <td align="left" valign="top"><div class="list-item"><dtml-var entry_item></div></td>
+    </tr>
+</dtml-in>
+  </table>
+</div>
+<p class="top"><a href="#">Back to top</a></p>
+</dtml-if>
+
+<dtml-if "report[ 'history' ]">
+<h3>
+  <a name="history"></a>Historic Revisions
+  <a id="panel_history_switch" class="panel" href="#history" onclick="togglepanel( '#panel_history' );"></a>
+</h3>
+<div class="box panel" id="panel_history">
+  <table width="100%" cellspacing="0" cellpadding="2" border="0">
+    <tr class="list-header">
+      <th align="left" valign="top" width="20%"><div class="list-item">Key</div></th>
+      <th align="left" valign="top"><div class="list-item">Value</div></th>
+    </tr>
+<dtml-in "report[ 'history' ]" prefix=entry>
+    <tr class="<dtml-if sequence-odd>row-normal<dtml-else>row-hilite</dtml-if>">
+      <th align="left" valign="top"><div class="list-item"><dtml-var entry_key></div></td>
+      <td align="left" valign="top"><div class="list-item"><dtml-var entry_item></div></td>
+    </tr>
+</dtml-in>
+  </table>
+</div>
+<p class="top"><a href="#">Back to top</a></p>
+</dtml-if>
+
+<dtml-if "report[ 'forms_images' ]">
+<h3>
+  <a name="forms_images"></a>Form & Image Objects
+  <a id="panel_forms_images_switch" class="panel" href="#forms_images" onclick="togglepanel( '#panel_forms_images' );"></a>
+</h3>
+<div class="box panel" id="panel_forms_images">
+  <table width="100%" cellspacing="0" cellpadding="2" border="0">
+    <tr class="list-header">
+      <th align="left" valign="bottom" width="20%"><div class="list-item">Key</div></th>
+      <th align="left" valign="bottom"><div class="list-item">Value</div></th>
+      <th align="left" valign="bottom"><div class="list-item">View</div></th>
+    </tr>
+<dtml-in "report[ 'forms_images' ]" prefix=entry>
+    <tr class="<dtml-if sequence-odd>row-normal<dtml-else>row-hilite</dtml-if>">
+      <th align="left" valign="baseline"><div class="list-item"><dtml-var entry_key></div></td>
+      <td align="left" valign="baseline"><div class="list-item"><dtml-var "entry_item[ 1 ]"></div></td>
+      <td align="left" valign="baseline"><div class="list-item"><dtml-if "entry_item[ 2 ]"><a href="<dtml-var "entry_item[ 2 ]">">View</a><dtml-else>&nbsp;</dtml-if></div></td>
+    </tr>
+</dtml-in>
+  </table>
+</div>
+<p class="top"><a href="#">Back to top</a></p>
+</dtml-if>
+
+<dtml-if "report[ 'callable' ]">
+<h3>
+  <a name="callable"></a>Callable Objects (Functions, Methods, etc.)
+  <a id="panel_callable_switch" class="panel" href="#callable" onclick="togglepanel( '#panel_callable' );"></a>
+</h3>
+<dtml-if group_lists>
+<div class="panel" id="panel_callable">
+<dtml-let groups="group_list( report[ 'callable' ] )">
+  <ul class="list">
+<dtml-in groups prefix=group>
+    <li><a href="#callable_<dtml-var "group_item[ 0 ]">"><dtml-var "group_item[ 1 ]"></a></li>
+</dtml-in>
+  </ul>
+<dtml-in groups prefix=group>
+  <h4><a name="callable_<dtml-var "group_item[ 0 ]">"></a>Callable Objects (<dtml-var "group_item[ 1 ]">)</h4>
+  <div class="box">
+    <table width="100%" cellspacing="0" cellpadding="2" border="0">
+      <tr class="list-header">
+        <th align="left" valign="bottom" width="20%"><div class="list-item">Key</div></th>
+        <th align="left" valign="bottom"><div class="list-item">Value</div></th>
+      </tr>
+<dtml-in "group_item[ 2 ]" prefix=entry>
+      <tr class="hover <dtml-if entry_odd>row-normal<dtml-else>row-hilite</dtml-if>">
+        <th align="left" valign="baseline"><div class="list-item"><dtml-var entry_key></div></td>
+        <td align="left" valign="baseline"><div class="list-item"><dtml-var entry_item></div></td>
+      </tr>
+</dtml-in>
+    </table>
+  </div>
+  <p class="top"><a href="#callable">Back to Callable Objects</a></p>
+</dtml-in>
+</dtml-let>
+</div>
+<dtml-else>
+<div class="box panel" id="panel_callable">
+  <table width="100%" cellspacing="0" cellpadding="2" border="0">
+    <tr class="list-header">
+      <th align="left" valign="bottom" width="20%"><div class="list-item">Key</div></th>
+      <th align="left" valign="bottom"><div class="list-item">Value</div></th>
+    </tr>
+<dtml-in "report[ 'callable' ]" prefix=entry>
+    <tr class="hover <dtml-if entry_odd>row-normal<dtml-else>row-hilite</dtml-if>">
+      <th align="left" valign="baseline"><div class="list-item"><dtml-var entry_key></div></td>
+      <td align="left" valign="baseline"><div class="list-item"><dtml-var entry_item></div></td>
+    </tr>
+</dtml-in>
+  </table>
+</div>
+</dtml-if>
+<p class="top"><a href="#">Back to top</a></p>
+</dtml-if>
+
+<dtml-if "report[ 'sequence_items' ]">
+<h3>
+  <a name="sequence_items"></a>Sequence Items
+  <a id="panel_sequence_items_switch" class="panel" href="#sequence_items" onclick="togglepanel( '#panel_sequence_items' );"></a>
+</h3>
+<div class="box panel" id="panel_sequence_items">
+  <table width="100%" cellspacing="0" cellpadding="2" border="0">
+    <tr class="list-header">
+      <th align="left" valign="bottom"><div class="list-item">#</div></th>
+      <th align="left" valign="bottom" width="80%"><div class="list-item">Value</div></th>
+    </tr>
+<dtml-in "report[ 'sequence_items' ]" prefix=entry>
+    <tr class="<dtml-if sequence-odd>row-normal<dtml-else>row-hilite</dtml-if>">
+      <th align="left" valign="top"><div class="list-item"><dtml-var entry_key></div></td>
+      <td align="left" valign="top"><div class="list-item"><dtml-var entry_item></div></td>
+    </tr>
+</dtml-in>
+  </table>
+</div>
+<p class="top"><a href="#">Back to top</a></p>
+</dtml-if>
+
+<dtml-if "report[ 'mapping_items' ]">
+<h3>
+  <a name="mapping_items"></a>Mapping Items
+  <a id="panel_mapping_items_switch" class="panel" href="#mapping_items" onclick="togglepanel( '#panel_mapping_items' );"></a>
+</h3>
+<div class="box panel" id="panel_mapping_items">
+  <table width="100%" cellspacing="0" cellpadding="2" border="0">
+    <tr class="list-header">
+      <th align="left" valign="bottom"><div class="list-item">Key</div></th>
+      <th align="left" valign="bottom" width="80%"><div class="list-item">Value</div></th>
+    </tr>
+<dtml-in "report[ 'mapping_items' ]" prefix=entry>
+    <tr class="<dtml-if sequence-odd>row-normal<dtml-else>row-hilite</dtml-if>">
+      <th align="left" valign="baseline"><div class="list-item"><dtml-var entry_key></div></td>
+      <td align="left" valign="baseline"><div class="list-item"><dtml-var entry_item></div></td>
+    </tr>
+</dtml-in>
+  </table>
+</div>
+<p class="top"><a href="#">Back to top</a></p>
+</dtml-if>
+
+<dtml-if "report[ 'attr_dict' ]">
+<h3>
+  <a name="attr_dict"></a>Attributes from __dict__
+  <a id="panel_attr_dict_switch" class="panel" href="#attr_dict" onclick="togglepanel( '#panel_attr_dict' );"></a>
+</h3>
+<dtml-if group_lists>
+<div class="panel" id="panel_attr_dict">
+<dtml-let groups="group_list( report[ 'attr_dict' ] )">
+  <ul class="list">
+<dtml-in groups prefix=group>
+    <li><a href="#attr_dict_<dtml-var "group_item[ 0 ]">"><dtml-var "group_item[ 1 ]"></a></li>
+</dtml-in>
+  </ul>
+<dtml-in groups prefix=group>
+  <h4><a name="attr_dict_<dtml-var "group_item[ 0 ]">"></a>Attributes from __dict__ (<dtml-var "group_item[ 1 ]">)</h4>
+  <div class="box">
+    <table width="100%" cellspacing="0" cellpadding="2" border="0">
+      <tr class="list-header">
+        <th align="left" valign="bottom" width="20%"><div class="list-item">Key</div></th>
+        <th align="left" valign="bottom"><div class="list-item">Value</div></th>
+      </tr>
+<dtml-in "group_item[ 2 ]" prefix=entry>
+      <tr class="hover <dtml-if entry_odd>row-normal<dtml-else>row-hilite</dtml-if>">
+        <th align="left" valign="baseline"><div class="list-item"><dtml-var entry_key></div></td>
+        <td align="left" valign="baseline"><div class="list-item"><dtml-var entry_item></div></td>
+      </tr>
+</dtml-in>
+    </table>
+  </div>
+  <p class="top"><a href="#callable">Back to Attributes from __dict__</a></p>
+</dtml-in>
+</dtml-let>
+</div>
+<dtml-else>
+<div class="box panel" id="panel_attr_dict">
+  <table width="100%" cellspacing="0" cellpadding="2" border="0">
+    <tr class="list-header">
+      <th align="left" valign="bottom" width="20%"><div class="list-item">Key</div></th>
+      <th align="left" valign="bottom"><div class="list-item">Value</div></th>
+    </tr>
+<dtml-in "report[ 'attr_dict' ]" prefix=entry>
+    <tr class="hover <dtml-if entry_odd>row-normal<dtml-else>row-hilite</dtml-if>">
+      <th align="left" valign="baseline"><div class="list-item"><dtml-var entry_key></div></td>
+      <td align="left" valign="baseline"><div class="list-item"><dtml-var entry_item></div></td>
+    </tr>
+</dtml-in>
+  </table>
+</div>
+</dtml-if>
+<p class="top"><a href="#">Back to top</a></p>
+</dtml-if>
+
+<dtml-if "report[ 'attr_dir' ]">
+<h3>
+  <a name="attr_dir"></a>Attributes from dir()
+  <a id="panel_attr_dir_switch" class="panel" href="#attr_dir" onclick="togglepanel( '#panel_attr_dir' );"></a>
+</h3>
+<dtml-if group_lists>
+<div class="panel" id="panel_attr_dir">
+<dtml-let groups="group_list( report[ 'attr_dir' ] )">
+  <ul class="list">
+<dtml-in groups prefix=group>
+    <li><a href="#attr_dir_<dtml-var "group_item[ 0 ]">"><dtml-var "group_item[ 1 ]"></a></li>
+</dtml-in>
+  </ul>
+<dtml-in groups prefix=group>
+  <h4><a name="attr_dir_<dtml-var "group_item[ 0 ]">"></a>Attributes from dir() (<dtml-var "group_item[ 1 ]">)</h4>
+  <div class="box">
+    <table width="100%" cellspacing="0" cellpadding="2" border="0">
+      <tr class="list-header">
+        <th align="left" valign="bottom" width="20%"><div class="list-item">Key</div></th>
+        <th align="left" valign="bottom"><div class="list-item">Value</div></th>
+      </tr>
+<dtml-in "group_item[ 2 ]" prefix=entry>
+      <tr class="hover <dtml-if entry_odd>row-normal<dtml-else>row-hilite</dtml-if>">
+        <th align="left" valign="baseline"><div class="list-item"><dtml-var entry_key></div></td>
+        <td align="left" valign="baseline"><div class="list-item"><dtml-var entry_item></div></td>
+      </tr>
+</dtml-in>
+    </table>
+  </div>
+  <p class="top"><a href="#attr_dir">Back to Attributes from dir()</a></p>
+</dtml-in>
+</dtml-let>
+</div>
+<dtml-else>
+<div class="box panel" id="panel_attr_dir">
+  <table width="100%" cellspacing="0" cellpadding="2" border="0">
+    <tr class="list-header">
+      <th align="left" valign="bottom" width="20%"><div class="list-item">Key</div></th>
+      <th align="left" valign="bottom"><div class="list-item">Value</div></th>
+    </tr>
+<dtml-in "report[ 'attr_dir' ]" prefix=entry>
+    <tr class="hover <dtml-if entry_odd>row-normal<dtml-else>row-hilite</dtml-if>">
+      <th align="left" valign="baseline"><div class="list-item"><dtml-var entry_key></div></td>
+      <td align="left" valign="baseline"><div class="list-item"><dtml-var entry_item></div></td>
+    </tr>
+</dtml-in>
+  </table>
+</div>
+</dtml-if>
+<p class="top"><a href="#">Back to top</a></p>
+</dtml-if>
+
+<dtml-else>
+
+<h3>Retrieval Error</h3>
+<p class="pad error">
+  The specified object could not be retrieved.
+  Either the object does not exist or can not be retrieved due to technical reasons.
+  Below is the verbose path info which may provide information on why retrieval failed.
+</p>
+
+<h3>
+  <a name="path_info"></a>Path Info
+</h3>
+<div class="box">
+  <table width="100%" cellspacing="0" cellpadding="2" border="0">
+    <tr class="list-header">
+      <th align="left" valign="bottom" width="20%"><div class="list-item">Key</div></th>
+      <th align="left" valign="bottom" width="20%"><div class="list-item">Id</div></th>
+      <th align="left" valign="bottom"><div class="list-item">Title</div></th>
+    </tr>
+<dtml-in "report[ 'path_info' ]" prefix=entry>
+    <tr class="hover <dtml-if sequence-odd>row-normal<dtml-else>row-hilite</dtml-if>">
+      <th align="left" valign="baseline"><div class="list-item"><a href="<dtml-var entry_key>"><dtml-if "entry_item[ 1 ]"><dtml-var "entry_item[ 1 ]"><dtml-else><em>Unnamed</em></dtml-if></a></div></td>
+      <td align="left" valign="baseline"><div class="list-item"><dtml-var "entry_item[ 3 ]"></div></td>
+      <td align="left" valign="baseline"><div class="list-item"><dtml-var "entry_item[ 4 ]"></div></td>
+    </tr>
+</dtml-in>
+  </table>
+</div>
+<p class="top"><a href="#">Back to top</a></p>
+
+</dtml-if>

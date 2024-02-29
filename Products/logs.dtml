@@ -1,0 +1,172 @@
+<dtml-let
+  path="REQUEST.get( 'path', '' )"
+  report="scan_logfile( path, REQUEST )"
+  breadcrumbs="report[ 'breadcrumbs' ]"
+  >
+<dtml-var manage_page_header>
+<dtml-var manage_tabs>
+<dtml-var scanner_css>
+
+<h2>Log File Scanner</h2>
+<dtml-var breadcrumbs_html>
+
+<dtml-if path>
+<dtml-let
+  now=ZopeTime
+  result="read_logfile( path, report[ 'log_batch_start' ], report[ 'log_batch_size' ], report[ 'keywords' ], report[ 'match_type' ], report[ 'match_case' ], report[ 'date_start' ], report[ 'date_end' ] )"
+  >
+<form action="scan_logfile_form" method="post">
+
+<div class="box">
+  <table width="100%" cellspacing="0" cellpadding="2" border="0">
+    <tr class="list-header">
+      <th align="left" valign="bottom"><div class="list-item">Log File</div></th>
+      <th align="left" valign="bottom"><div class="list-item">Keyword Filter</div></th>
+      <th align="left" valign="bottom"><div class="list-item">Date Filter</div></th>
+    </tr>
+    <tr class="row-hilite">
+      <td align="left" valign="baseline">
+        <div class="form-element">
+          <select name="path" id="path">
+            <option value="access.log"<dtml-if "path == 'access.log'"> selected</dtml-if>>Access Log</option>
+            <option value="error.log"<dtml-if "path == 'error.log'"> selected</dtml-if>>Error Log</option>
+            <option value="event.log"<dtml-if "path == 'event.log'"> selected</dtml-if>>Event Log</option>
+          </select>
+        </div>
+      </td>
+      <td align="left" valign="baseline" width="100%">
+        <table width="100%" cellspacing="0" cellpadding="2" border="0">
+          <tr>
+            <td align="left" valign="baseline" colspan="2">
+              <div class="form-element">
+                <input type="text" name="keywords" id="keywords" value="<dtml-var "report[ 'keywords' ]">" class="fw">
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td align="left" valign="baseline">
+              <div class="form-element">
+                <select name="match_type" id="match_type">
+                  <option value="phrase"<dtml-if "report[ 'match_type' ] == 'phrase'"> selected="selected"</dtml-if>>match exact phrase</option>
+                  <option value="all_words"<dtml-if "report[ 'match_type' ] == 'all_words'"> selected="selected"</dtml-if>>match all words</option>
+                  <option value="any_words"<dtml-if "report[ 'match_type' ] == 'any_words'"> selected="selected"</dtml-if>>match any words</option>
+                </select>
+              </div>
+            </td>
+            <td align="left" valign="baseline">
+              <div class="form-element">
+                <input type="checkbox" name="match_case" id="match_case"<dtml-if "report[ 'match_case' ]"> checked="checked"</dtml-if>> <label for="match_case">case sensitive</label>
+              </div>
+            </td>
+          </tr>
+        </table>
+      </td>
+      <td align="left" valign="baseline">
+        <table cellspacing="0" cellpadding="2" border="0">
+          <tr>
+            <th align="left" valign="baseline"><div class="form-element">Start:</div></th>
+            <td align="left" valign="baseline"><div class="form-element"><input type="text" size="8" name="date_start" value="<dtml-var "report[ 'date_start' ]">"></div></td>
+          </tr>
+          <tr>
+            <th align="left" valign="baseline"><div class="form-element">End:</div></th>
+            <td align="left" valign="baseline"><div class="form-element"><input type="text" size="8" name="date_end" value="<dtml-var "report[ 'date_end' ]">"></div></td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<div class="pad">
+  <table width="100%" cellspacing="0" cellpadding="0" border="0">
+    <tr>
+      <td align="left" valign="baseline" width="30%">
+        <div class="form-element">
+          <select name="log_batch_size">
+<dtml-in "range( 5, result[ 'length' ] + 5, 5 )" prefix=size>
+            <option value="<dtml-var size_item>"<dtml-if "report[ 'log_batch_size' ] == size_item"> selected</dtml-if>><dtml-var size_item></option>
+</dtml-in>
+          </select>
+          lines per page
+        </div>
+      </td>
+      <td align="center" valign="baseline" width="40%">
+        <div class="form-element">
+          <a href="<dtml-var scanner_url>/scan_logfile_form?path=<dtml-var path>&log_batch_start=0&log_batch_size=<dtml-var "report[ 'log_batch_size' ]">&keywords=<dtml-var "report[ 'keywords' ]" url_quote>&match_type=<dtml-var "report[ 'match_type' ]">&match_case=<dtml-var "report[ 'match_case' ] and 'on' or ''">&date_start=<dtml-var "report[ 'date_start' ]" url_quote>&date_end=<dtml-var "report[ 'date_end' ]" url_quote>"><img src="batch_first_image"> First</a>
+          <a href="<dtml-var scanner_url>/scan_logfile_form?path=<dtml-var path>&log_batch_start=<dtml-var "max( report[ 'log_batch_start' ] - report[ 'log_batch_size' ], 0 )">&log_batch_size=<dtml-var "report[ 'log_batch_size' ]">&keywords=<dtml-var "report[ 'keywords' ]" url_quote>&match_type=<dtml-var "report[ 'match_type' ]">&match_case=<dtml-var "report[ 'match_case' ] and 'on' or ''">&date_start=<dtml-var "report[ 'date_start' ]" url_quote>&date_end=<dtml-var "report[ 'date_end' ]">"><img src="batch_prev_image"> Previous</a>
+          <select name="log_batch_start">
+<dtml-in "range( 0, result[ 'length' ], report[ 'log_batch_size' ] )" prefix=index>
+            <option value="<dtml-var index_item>"<dtml-if "index_item == report[ 'log_batch_start' ]"> selected="selected"</dtml-if>><dtml-var "'%s - %s' % ( index_item + 1, min( index_item + report[ 'log_batch_size' ], result[ 'length' ] ) )">
+</dtml-in>
+          </select>
+          of <dtml-var "result[ 'length' ]">
+          <a href="<dtml-var scanner_url>/scan_logfile_form?path=<dtml-var path>&log_batch_start=<dtml-var "min( report[ 'log_batch_start' ] + report[ 'log_batch_size' ], report[ 'log_batch_size' ] * int( math.floor( result[ 'length' ] / report[ 'log_batch_size' ] ) ) - 1 )">&log_batch_size=<dtml-var "report[ 'log_batch_size' ]">&keywords=<dtml-var "report[ 'keywords' ]" url_quote>&match_type=<dtml-var "report[ 'match_type' ]">&match_case=<dtml-var "report[ 'match_case' ] and 'on' or ''">&date_start=<dtml-var "report[ 'date_start' ]" url_quote>&date_end=<dtml-var "report[ 'date_end' ]">">Next <img src="batch_next_image"></a>
+          <a href="<dtml-var scanner_url>/scan_logfile_form?path=<dtml-var path>&log_batch_start=<dtml-var "report[ 'log_batch_size' ] * int( math.floor( result[ 'length' ] / report[ 'log_batch_size' ] ) ) - 1">&log_batch_size=<dtml-var "report[ 'log_batch_size' ]">&keywords=<dtml-var "report[ 'keywords' ]" url_quote>&match_type=<dtml-var "report[ 'match_type' ]">&match_case=<dtml-var "report[ 'match_case' ] and 'on' or ''">&date_start=<dtml-var "report[ 'date_start' ]" url_quote>&date_end=<dtml-var "report[ 'date_end' ]">">Last <img src="batch_last_image"></a>
+        </div>
+      </td>
+      <td align="right" valign="baseline">
+        <div class="form-element">
+          <input type="submit" value="Refresh">
+        </div>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<dtml-if "result[ 'lines' ]">
+
+<br>
+
+<div class="box">
+  <table width="100%" cellspacing="0" cellpadding="2" border="0">
+    <tr class="list-header">
+      <th align="right" valign="bottom"><div class="list-item">#</div></th>
+<dtml-in "result[ 'columns' ]" prefix=column>
+      <th align="left" valign="bottom" nowrap><div class="list-item"><dtml-var column_item></div></th>
+</dtml-in>
+    </tr>
+<dtml-in "result[ 'lines' ]" prefix=line>
+    <tr class="<dtml-if sequence-odd>row-normal<dtml-else>row-hilite</dtml-if>">
+      <th align="right" valign="baseline"><div class="list-item"><dtml-var "report[ 'log_batch_start' ] + line_number"></div></th>
+<dtml-in line_item prefix=column>
+      <td align="left" valign="baseline" nowrap><div class="list-item"><pre><dtml-var column_item html_quote></pre></div></td>
+</dtml-in>
+    </tr>
+</dtml-in>
+  </table>
+</div>
+
+<dtml-else>
+<div class="pad">
+  <p><em>No lines found...</em></p>
+</div>
+</dtml-if>
+
+</form>
+</dtml-let>
+<dtml-else>
+
+<dl>
+  <dt><a href="&dtml-scanner_url;/scan_logfile_form?path=access.log">Access Log</a></dt>
+  <dd>
+    Browse the Zope server's access log file, which stores all requests to the Zope server.
+    You can also <a href="<dtml-var scanner_url>/scan_source_form?path=instance/log/event.log">view the file</a> in the Source Scanner.
+  </dd>
+  <dt><a href="&dtml-scanner_url;/scan_logfile_form?path=error.log">Error Log</a></dt>
+  <dd>
+    Browse the Zope server's error log object's entries.
+    This is a volatile storage for exceptions encountered during operation of the Zope server.
+    You can also <a href="<dtml-var scanner_url>/scan_object_form?path=error_log">view the object</a> in the Objects Scanner.
+  </dd>
+  <dt><a href="&dtml-scanner_url;/scan_logfile_form?path=event.log">Event Log</a></dt>
+  <dd>
+    Browse the Zope server's event log file, which protocols events depending on the log level setting in the configuration.
+    You can also <a href="<dtml-var scanner_url>/scan_source_form?path=instance/log/event.log">view the file</a> in the Source Scanner.
+  </dd>
+</dl>
+
+</dtml-if>
+
+<dtml-var scanner_js>
+<dtml-var manage_page_footer>
+</dtml-let>

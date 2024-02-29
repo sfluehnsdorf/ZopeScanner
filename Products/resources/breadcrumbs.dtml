@@ -1,0 +1,11 @@
+<ul class="breadcrumbs">
+<dtml-in breadcrumbs prefix=breadcrumb>
+  <li class="breadcrumbs">
+    <span class="std-text">
+      <a href="&dtml-scanner_url;/<dtml-var breadcrumb_key>" class="breadcrumbs">
+        <dtml-var breadcrumb_item>
+      </a>
+    </span>
+  </li>
+</dtml-in>
+</ul>
