@@ -33,8 +33,7 @@ from modules import ModuleScanner
 from objects import ObjectScanner
 from products import ProductScanner
 from resources import ScannerResources
-from resources.imports import ApplicationManager, DTMLFile, DevelopmentMode,\
-    Implicit, Item, getLogger
+from resources.imports import ApplicationManager, DTMLFile, Implicit, Item
 from servers import ServerScanner
 from sources import SourceScanner
 
@@ -104,7 +103,7 @@ class ZopeScanner(
         # format options
         try:
             batch_size = int(REQUEST.form.get('batch_size', 20))
-        except:
+        except Exception:
             batch_size = 20
         group_lists = REQUEST.form.get('group_lists', None) and True or False
         use_js = REQUEST.form.get('use_js', None) and True or False
@@ -134,15 +133,15 @@ def install_ZopeScanner(context):
     configured to run in development mode to avoid this Product to be installed
     on a production server.
     """
-    logger = getLogger('ZopeScanner')
-
-    if DevelopmentMode:
-        scanner = ZopeScanner()
-        setattr(ApplicationManager, scanner.id, scanner)
+    scanner = ZopeScanner()
+    setattr(ApplicationManager, scanner.id, scanner)
+    try:
         objects = list(ApplicationManager._objects)
         objects.append({'id': scanner.id, 'meta_type': scanner.meta_type})
         ApplicationManager._objects = tuple(objects)
-        logger.info('Installed into Control_Panel.')
-
-    else:
-        logger.info('Not installed, since not in development (debug) mode.')
+    except AttributeError:
+        pass
+    options = list(ApplicationManager.manage_options)
+    options.append(
+        {'label': 'ZopeScanner', 'action': scanner.id + '/manage_workspace'},)
+    ApplicationManager.manage_options = tuple(options)

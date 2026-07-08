@@ -1,5 +1,5 @@
 # -*- coding: iso-8859-15 -*-
-# ============================================================================
+# =============================================================================
 #
 #                          Z o p e   S c a n n e r
 #
@@ -18,7 +18,7 @@
 # WARRANTIES OF TITLE, MERCHANTABILITY, AGAINST INFRINGEMENT, AND FITNESS
 # FOR A PARTICULAR PURPOSE
 #
-# ============================================================================
+# =============================================================================
 
 __doc__ = """ZopeScanner Import Resources
 
@@ -29,40 +29,55 @@ __version__ = '$Revision: 1.3 $'[11:-2]
 
 
 
-# ============================================================================
+# =============================================================================
 # Imports
 
+import os
 from asyncore import socket_map
 from logging import getLogger
 from os import listdir, stat
-from os.path import abspath, exists, isdir, join, normpath, realpath, split, splitext
+from os.path import (
+    abspath, exists, isdir, join, normpath, realpath, split, splitext)
 from re import compile, match
 from struct import unpack
 from sys import maxint, modules, prefix, version
 from time import ctime
-from types import BooleanType, BufferType, BuiltinFunctionType,\
-  BuiltinMethodType, ClassType, DictProxyType, DictType, EllipsisType,\
-  FileType, FloatType, FunctionType, GeneratorType, InstanceType, IntType,\
-  LambdaType, ListType, LongType, MethodType, ModuleType, NoneType,\
-  NotImplementedType, ObjectType, SliceType, StringType, TupleType, TypeType,\
-  UnboundMethodType, XRangeType
+from types import (
+    BooleanType, BufferType, BuiltinFunctionType, BuiltinMethodType, ClassType,
+    DictProxyType, DictType, EllipsisType, FileType, FloatType, FunctionType,
+    GeneratorType, InstanceType, IntType, LambdaType, ListType, LongType,
+    MethodType, ModuleType, NoneType, NotImplementedType, ObjectType,
+    SliceType, StringType, TupleType, TypeType, UnboundMethodType, XRangeType)
 
+import Products
 from AccessControl.Owned import UnownableOwner
 from AccessControl.Permission import Permission
 from AccessControl.SecurityManagement import getSecurityManager
 from Acquisition import aq_parent, aq_inner, Implicit
 from App.ApplicationManager import ApplicationManager
+from App.Dialogs import MessageDialog
+from App.ImageFile import ImageFile
 from App.config import getConfiguration
-from Globals import DevelopmentMode, DTMLFile, HTML, HTMLFile, ImageFile, INSTANCE_HOME, MessageDialog, SOFTWARE_HOME, ZOPE_HOME
+from App.special_dtml import DTMLFile, HTML
+from DocumentTemplate.DT_HTML import HTMLFile
 from OFS.SimpleItem import Item
 from Products.PythonScripts.standard import html_quote
-from ZopeUndo.Prefix import Prefix
 
-import Products
+try:
+    from ZopeUndo.Prefix import Prefix
+except Exception:
+    Prefix = None
 
 
+# =============================================================================
+# Environment
 
-# ============================================================================
+INSTANCE_HOME = os.environ.get('INSTANCE_HOME')
+SOFTWARE_HOME = os.environ.get('SOFTWARE_HOME')
+ZOPE_HOME = os.environ.get('ZOPE_HOME')
+
+
+# =============================================================================
 # Failsafe Imports
 
 _notImported = []

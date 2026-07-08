@@ -28,9 +28,9 @@ __version__ = '$Revision: 1.3 $'[11:-2]
 # =============================================================================
 # Module Imports
 
-from resources.imports import DTMLFile, INSTANCE_HOME, SOFTWARE_HOME,\
-    ZOPE_HOME, abspath, ctime, exists, isdir, join, listdir, normpath, prefix,\
-    realpath, split, splitext, stat, version
+from resources.imports import (
+    DTMLFile, INSTANCE_HOME, SOFTWARE_HOME, ZOPE_HOME, abspath, ctime, exists,
+    isdir, join, listdir, normpath, prefix, realpath, splitext, stat, version)
 
 
 # =============================================================================
@@ -75,7 +75,7 @@ extensions = {
     'txt': ('txt', 'Plain Text'),
     'xbm': ('img', 'XBM Image'),
     'xml': ('txt', 'XML (Extensible Markup Language)'),
-    'zexp': ('txt', 'Zope Configuration Markup Language'),
+    # 'zexp': ('txt', 'Zope Configuration Markup Language'),
     'zexp': ('hex', 'Zope Export'),
     'zip': ('hex', 'ZIP Archive'),
     'zpt': ('txt', 'ZPT (Page Template)'),

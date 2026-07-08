@@ -28,15 +28,16 @@ __version__ = '$Revision: 1.3 $'[11:-2]
 # =============================================================================
 # Module Imports
 
-from resources.imports import DTMLFile, INSTANCE_HOME, compile, ctime, exists,\
-    join, match
+from resources.imports import (
+    DTMLFile, INSTANCE_HOME, compile, ctime, exists, join, match)
 
 
 # =============================================================================
 # Regular Expressions
 
-access_pattern = compile('(.*) - (.*) \[(.*)\] "(.*)" (.*) (.*) "(.*)" "(.*)"')
-event_pattern = compile('(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d) (.*?) (.*)')
+access_pattern = compile(
+    r'(.*) - (.*) \[(.*)\] "(.*)" (.*) (.*) "(.*)" "(.*)"')
+event_pattern = compile(r'(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d) (.*?) (.*)')
 
 
 # =============================================================================
@@ -70,7 +71,7 @@ class LogScanner:
                 date_start = REQUEST.get('date_start', 'x')
                 if self.ZopeTime(date_start) > now:
                     raise
-            except:
+            except Exception:
                 date_start = '%4d-%02d-%02d' % (now.year(), now.month(),
                                                 now.day())
             try:
@@ -78,7 +79,7 @@ class LogScanner:
                 if self.ZopeTime(date_end) > now or self.ZopeTime(date_end) <\
                         self.ZopeTime(date_start):
                     raise
-            except:
+            except Exception:
                 date_end = '%4d-%02d-%02d' % (now.year(), now.month(),
                                               now.day())
             result = {
@@ -139,7 +140,7 @@ class LogScanner:
         def match_all_words(line):
             line = match_case and line or line.lower()
             for term in terms:
-                if not term in line:
+                if term not in line:
                     return False
             return True
 
@@ -179,7 +180,6 @@ class LogScanner:
                         if (date >= date_start and date <= date_end) and\
                                 match_keywords(fileline):
                             lines.append(matchobject.groups())
-                print date_start, date, date_end
 
         elif path == 'error.log':
             rootObject = self.getPhysicalRoot()
@@ -191,7 +191,11 @@ class LogScanner:
                 entries.reverse()
                 for entry in entries:
                     date = self.ZopeTime(ctime(entry['time']))
-                    if (date >= date_start and date <= date_end) and match_keywords(' '.join(map(lambda value: str(value), entry.values()))):
+                    if (
+                        (date >= date_start and date <= date_end) and
+                        match_keywords(' '.join(
+                            map(lambda value: str(value), entry.values())))
+                    ):
                         lines.append((ctime(entry['time']), entry['username'],
                                       entry['userid'], entry['url'],
                                       entry['type'], entry['value']))

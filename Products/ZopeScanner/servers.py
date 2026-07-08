@@ -62,20 +62,20 @@ class ServerScanner:
         for key, value in socket_map.items():
             try:
                 name = '%s' % getattr(value, 'SERVER_IDENT')
-            except:
+            except Exception:
                 name = '<em>n/a</em>'
             sclass = format_value(value, 'scan_server_form', '', str(key))
             try:
                 hostname = '%s' % getattr(value, 'hostname')
-            except:
+            except Exception:
                 hostname = '<em>n/a</em>'
             try:
                 ip = '%s' % getattr(value, 'ip')
-            except:
+            except Exception:
                 ip = '<em>n/a</em>'
             try:
                 port = '%s' % getattr(value, 'port')
-            except:
+            except Exception:
                 port = '<em>n/a</em>'
             servers.append({
                 'key': key,

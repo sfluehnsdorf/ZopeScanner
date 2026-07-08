@@ -69,7 +69,6 @@ class ProductScanner:
         installedproducts.sort()
 
         baseclasses = []
-        basepath = '/Control_Panel/Products'
         format_value = self.format_value
         get_link_url = self.get_link_url
         meta_types = Products.meta_types

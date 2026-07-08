@@ -278,7 +278,7 @@ class Scanning:
         try:
             result = []
             format_value = self.format_value
-            spec = {'user_name': Prefix('')}
+            spec = {'user_name': Prefix and Prefix('') or None}
             if getattr(aq_parent(aq_inner(object)), '_p_jar', None) == object._p_jar:
                 opath = '/'.join(object.getPhysicalPath())
                 if opath:

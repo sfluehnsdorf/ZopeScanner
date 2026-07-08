@@ -30,8 +30,9 @@ __version__ = '$Revision: 1.3 $'[11:-2]
 # =============================================================================
 # Imports
 
-from resources.imports import exists, DTMLFile, INSTANCE_HOME, modules,\
-    normpath, prefix, SOFTWARE_HOME, split, ZOPE_HOME
+from resources.imports import (
+    exists, DTMLFile, INSTANCE_HOME, modules, normpath, prefix, SOFTWARE_HOME,
+    split, ZOPE_HOME)
 
 
 # =============================================================================
@@ -116,7 +117,7 @@ class ModuleScanner:
                             )
                         )
 
-            except Exception, e:
+            except Exception as e:
                 filename = '<em>%s</em><br>%s' % (e, e.__dict__)
                 xerrors[key] = '<em>%s</em><br>%s' % (e, e.__dict__)
             root_module = str(key).split('.')[0]
