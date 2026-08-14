@@ -1,226 +1,202 @@
-# -*- coding: utf8 -*-
-# =============================================================================
-#
-#                            Z o p e  S c a n n e r
-#
-# -----------------------------------------------------------------------------
-# Copyright (c) 2009 - 2014, Sebastian Lühnsdorf - Web-Solutions
-# For more information see the README.txt file or visit www.zope.biz
-# -----------------------------------------------------------------------------
-#
-# This software is subject to the provisions of the Zope Public License,
-# Version 2.1 (ZPL).
-#
-# A copy of the ZPL should accompany this distribution.
-#
-# THIS SOFTWARE IS PROVIDED "AS IS" AND ANY AND ALL EXPRESS OR IMPLIED
-# WARRANTIES ARE DISCLAIMED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-# WARRANTIES OF TITLE, MERCHANTABILITY, AGAINST INFRINGEMENT, AND FITNESS
-# FOR A PARTICULAR PURPOSE
-#
-# =============================================================================
-
-__doc__ = """ZopeScanner LogScanner"""
-
-__version__ = '$Revision: 1.3 $'[11:-2]
+"""Zope Scanner - LogScanner."""
 
 
-# =============================================================================
-# Module Imports
+from Products.ZopeScanner.imports_python import basename
+from Products.ZopeScanner.imports_python import compile
+from Products.ZopeScanner.imports_python import environ
+from Products.ZopeScanner.imports_python import exists
+from Products.ZopeScanner.imports_python import match
+from Products.ZopeScanner.imports_python import stderr
+from Products.ZopeScanner.imports_python import writes
 
-from resources.imports import (
-    DTMLFile, INSTANCE_HOME, compile, ctime, exists, join, match)
+from Products.ZopeScanner.imports_zope import DTMLFile
+from Products.ZopeScanner.imports_zope import MinimalLogger
+
+from Products.ZopeScanner.shared import sort_by_key
 
 
-# =============================================================================
-# Regular Expressions
+INSTANCE_HOME = environ.get('INSTANCE_HOME')
+
+
+default_max_lines = 50
 
 access_pattern = compile(
     r'(.*) - (.*) \[(.*)\] "(.*)" (.*) (.*) "(.*)" "(.*)"')
-event_pattern = compile(r'(\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d) (.*?) (.*)')
+access_pattern_columns = [
+    'Client IP',
+    'User',
+    'Date/Time',
+    'Request',
+    'Status',
+    'Size',
+    'Referrer',
+    'Client',
+]
 
-
-# =============================================================================
-# LogScanner Mix-in Class
 
 class LogScanner:
-    """LogScanner Mix-in Class"""
+    """LogScanner Mix-in Class."""
 
-    scan_logfile_form = DTMLFile('logs', globals())
+    scan_logfiles_form = DTMLFile(
+        'resources/logs', globals(), default_max_lines=default_max_lines)
 
-    def scan_logfile(self, path='', REQUEST=None):
-        """Scan Log File
+    def get_logfile_lines(self, path, max_lines):
+        """Update log file's lines."""
+        lines = []
+        columns = []
+        if path and max_lines:
+            lines = self._read_logfile(path, int(max_lines))
+            if lines:
+                columns, lines = self._process_logfile_lines(lines)
+        return writes({
+            'columns': columns,
+            'columns_len': len(columns),
+            'lines': lines,
+            'lines_len': len(lines),
+        })
+
+    def scan_logfiles(
+        self, path='', max_lines=default_max_lines, REQUEST=None
+    ):
+        """Scan log files.
 
         Scan the log file specified by path, applying a variety of batch and
         filter options. This method only processes options and prepares for the
-        actual log file reading. See the read_logfile() method below for actual
-        file access.
+        actual log file reading. See the _read_logfile() method for actual file
+        access.
         """
+        breadcrumbs = [('scan_logfile_form', 'Log File Scanner')]
+        form_id = breadcrumbs[0][0]
+        url_prefix = '%s/%s' % (self.scanner_url(), form_id)
+        report = {
+            'breadcrumbs': breadcrumbs,
+            'form_id': form_id,
+            'url_prefix': url_prefix,
+        }
 
-        breadcrumbs = [
-            self.breadcrumbs_root,
-            ('scan_logfile_form', 'Log Files')
-            ]
+        path = path != '/' and path or ''
+        max_lines = int(max_lines) or default_max_lines
+        current_log_file = None
 
-        if path == '/':
-            path = ''
+        lines = []
+        columns = []
+        log_files = self._list_logfiles()
+        log_files_map = {}
+        if log_files:
+            for log_file in log_files:
+                log_files_map[log_file['filepath']] = log_file
+            if path in log_files_map:
+                current_log_file = log_files_map[path]
+            if not current_log_file:
+                current_log_file = log_files[0]
+            lines = self._read_logfile(current_log_file['filepath'], max_lines)
+        if lines:
+            columns, lines = self._process_logfile_lines(lines)
+        if current_log_file:
+            breadcrumbs = breadcrumbs + [(
+                current_log_file['filepath'], current_log_file['filename'])]
 
-        if path:
-            now = self.ZopeTime()
+        report.update({
+            'columns': columns,
+            'log_files': log_files,
+            'log_files_map': log_files_map,
+            'lines': lines,
+            'current_log_file': current_log_file,
+        })
+        return report
+
+    def _read_logfile(self, filepath, max_lines):
+        """Scan log file."""
+        lines = []
+        filepath_found = 0
+        for log_file in self._list_logfiles():
+            if filepath == log_file['filepath']:
+                filepath_found = 1
+                break
+        if (
+            filepath_found and
+            exists(filepath)
+        ):
+            buffer = [None] * max_lines
+            index = 0
+            total_lines = 0
+            filehandle = open(filepath, 'r')
             try:
-                date_start = REQUEST.get('date_start', 'x')
-                if self.ZopeTime(date_start) > now:
-                    raise
-            except Exception:
-                date_start = '%4d-%02d-%02d' % (now.year(), now.month(),
-                                                now.day())
-            try:
-                date_end = REQUEST.get('date_end', 'x')
-                if self.ZopeTime(date_end) > now or self.ZopeTime(date_end) <\
-                        self.ZopeTime(date_start):
-                    raise
-            except Exception:
-                date_end = '%4d-%02d-%02d' % (now.year(), now.month(),
-                                              now.day())
-            result = {
-                'log_batch_start': int(REQUEST.get('log_batch_start', 0)),
-                'log_batch_size': int(REQUEST.get('log_batch_size',
-                                                  self.batch_size)),
-                'keywords': REQUEST.get('keywords', ''),
-                'match_type': REQUEST.get('match_type', 'phrase'),
-                'match_case': REQUEST.get('match_case', None),
-                'date_start': date_start,
-                'date_end': date_end,
-                }
-            if path == 'access.log':
-                result['breadcrumbs'] = breadcrumbs + [
-                    ('scan_logfile_form?path=access.log', 'Access Log')
-                    ]
-            elif path == 'error.log':
-                result['breadcrumbs'] = breadcrumbs + [
-                    ('scan_logfile_form?path=error.log', 'Error Log')
-                    ]
-            elif path == 'event.log':
-                result['breadcrumbs'] = breadcrumbs + [
-                    ('scan_logfile_form?path=event.log', 'Event Log')
-                    ]
+                while 1:
+                    line = filehandle.readline()
+                    if not line:
+                        break
+                    buffer[index] = line.rstrip()
+                    index = (index + 1) % max_lines
+                    total_lines = total_lines + 1
+            except Exception:  # TODO: review Exception
+                pass
+            if total_lines == 0:
+                lines = []
+            elif total_lines < max_lines:
+                lines = buffer[:total_lines]
             else:
-                REQUEST.RESPONSE.redirect('%s/scan_logfile_form' %
-                                          self.scanner_url())
-            return result
+                lines = buffer[index:] + buffer[:index]
+            filehandle.close()
+        return lines
 
-        result = {}
-        result['breadcrumbs'] = breadcrumbs
+    def _list_logfiles(self):
+        result = []
+        try:  # since Python-2.3.0
+            import logging
+        except ImportError:
+            logging = None
+        if logging:
+            handlers = []
+            if hasattr(logging, 'getHandlerNames'):
+                for name in logging.getHandlerNames():
+                    handler = logging.getHandlerByName(name)
+                    handlers.append(handler)
+            elif hasattr(logging, '_handlerList'):
+                logging._acquireLock()
+                for weak_handler in logging._handlerList:
+                    handler = weak_handler()
+                    if handler is not None:
+                        handlers.append(handler)
+                logging._releaseLock()
+            elif hasattr(logging, '_handlers'):
+                logging._acquireLock()
+                for handler in logging._handlers.keys():
+                    handlers.append(handler)
+                logging._releaseLock()
+            for handler in handlers:
+                if hasattr(handler, 'baseFilename'):
+                    result.append({
+                        'filepath': handler.baseFilename,
+                        'filename': basename(handler.baseFilename),
+                    })
+        elif MinimalLogger:
+            destination = MinimalLogger._log_dest
+            if (
+                destination and
+                destination is not stderr
+            ):
+                filepath = str(MinimalLogger._log_dest.name)
+                result.append({
+                    'filepath': filepath,
+                    'filename': basename(filepath),
+                })
+        result = sort_by_key(result, 'filename')
         return result
 
-    def read_logfile(self, path, batch_start, batch_size, keywords, match_type,
-                     match_case, date_start, date_end):
-        """Read Log File
-
-        Read the specified log file and limit and filter the resulting lines
-        according to the specified options. This method ensures that only the
-        intended files can be read.
-        """
-
-        columns = []
+    def _process_logfile_lines(self, source):
         lines = []
-
-        date_start = self.ZopeTime(date_start).earliestTime()
-        date_end = self.ZopeTime(date_end).latestTime()
-
-        def match_none(line):
-            return True
-
-        def match_phrase(line):
-            line = match_case and line or line.lower()
-            if term in line:
-                return True
-            return False
-
-        def match_all_words(line):
-            line = match_case and line or line.lower()
-            for term in terms:
-                if term not in line:
-                    return False
-            return True
-
-        def match_any_words(line):
-            line = match_case and line or line.lower()
-            for term in terms:
-                if term in line:
-                    return True
-            return False
-
-        if match_type == 'phrase':
-            match_keywords = match_phrase
-            term = match_case and keywords.strip() or keywords.lower().strip()
-        elif match_type == 'all_words':
-            match_keywords = match_all_words
-            terms = match_case and keywords.strip().split(' ') or\
-                keywords.lower().strip().split(' ')
-        elif match_type == 'any_words':
-            match_keywords = match_any_words
-            terms = match_case and keywords.strip().split(' ') or\
-                keywords.lower().strip().split(' ')
+        first_line = source[0]
+        if match(access_pattern, first_line):
+            columns = access_pattern_columns[:]
+            for line in source:
+                matched_object = match(access_pattern, line)
+                if matched_object:
+                    lines.append(matched_object.groups())
+                else:
+                    lines.append([line])
         else:
-            match_keywords = match_none
-
-        if path == 'access.log':
-            filename = join(INSTANCE_HOME, 'log', 'Z2.log')
-            if exists(filename):
-                columns = ['IP', 'User', 'Date & Time', 'Request String',
-                           'Code', 'Size', 'URL', 'Client']
-                filehandle = open(filename, 'r')
-                filelines = filehandle.readlines()
-                filehandle.close()
-                for fileline in filelines:
-                    matchobject = match(access_pattern, fileline.strip())
-                    if matchobject:
-                        date = self.ZopeTime(matchobject.group(3))
-                        if (date >= date_start and date <= date_end) and\
-                                match_keywords(fileline):
-                            lines.append(matchobject.groups())
-
-        elif path == 'error.log':
-            rootObject = self.getPhysicalRoot()
-            errorLog = getattr(rootObject, '__error_log__', None)
-            if errorLog:
-                columns = ['Date & Time', 'Username', 'User Id', 'URL',
-                           'Exception Type', 'Exception Value']
-                entries = errorLog.getLogEntries()
-                entries.reverse()
-                for entry in entries:
-                    date = self.ZopeTime(ctime(entry['time']))
-                    if (
-                        (date >= date_start and date <= date_end) and
-                        match_keywords(' '.join(
-                            map(lambda value: str(value), entry.values())))
-                    ):
-                        lines.append((ctime(entry['time']), entry['username'],
-                                      entry['userid'], entry['url'],
-                                      entry['type'], entry['value']))
-
-        elif path == 'event.log':
-            filename = join(INSTANCE_HOME, 'log', 'event.log')
-            if exists(filename):
-                columns = ['Date & Time', 'Level', 'Message']
-                filehandle = open(filename, 'r')
-                filelines = filehandle.readlines()
-                filehandle.close()
-                for fileline in filelines:
-                    matchobject = match(event_pattern, fileline.strip())
-                    if matchobject:
-                        date = self.ZopeTime(matchobject.group(1))
-                        if (date >= date_start and date <= date_end) and\
-                                match_keywords(fileline):
-                            lines.append(matchobject.groups())
-                    elif fileline.strip() != '------' and lines:
-                        line = list(lines[-1])
-                        line[-1] = line[-1] + '\n' + fileline.strip()
-                        lines[-1] = line
-        lines.reverse()
-        return {
-            'columns': columns,
-            'lines': lines[batch_start: batch_start + batch_size],
-            'length': len(lines),
-            }
+            for line in source:
+                lines.append([line])
+            columns = ['Line']
+        return columns, lines

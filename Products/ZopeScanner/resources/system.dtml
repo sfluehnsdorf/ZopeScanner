@@ -1,0 +1,315 @@
+<dtml-let
+	path="REQUEST.get('path', '')"
+	report="scan_system(path)"
+	breadcrumbs="report['breadcrumbs']"
+>
+<dtml-var manage_page_header>
+<dtml-let MANAGE_TABS_NO_BANNER="1">
+<dtml-var manage_tabs>
+</dtml-let>
+<dtml-var breadcrumbs_html>
+<main class="container-fluid">
+<dtml-if path>
+<dtml-var object_form>
+<dtml-else>
+
+	<section id="system_toc">
+		<header>
+			<h3>Contents</h3>
+		</header>
+		<div class="tags">
+			<dtml-in "[
+				('host', 'Host'),
+				('software', 'Software'),
+				('servers', 'Servers'),
+				('databases', 'Databases'),
+				('dav_locks', 'DAV locks'),
+				('reference_counts', 'Reference Counts'),
+				('zodb_connections', 'ZODB Connections'),
+				('config_items', 'Configuration'),
+				('environ_items', 'Environment'),
+			]" prefix=section>
+				<dtml-if "report.get(section_key)">
+					<a class="tag" href="#system_<dtml-var section_key>"><dtml-var section_item></a>
+				</dtml-if>
+			</dtml-in>
+		</div>
+		<div class="buttons">
+			<a class="toggle_control" href="#" onclick="return showToggleViews(this);">
+				<span class="button">show all</span>
+			</a>
+			<a class="toggle_control" href="#" onclick="return hideToggleViews(this);">
+				<span class="button">hide all</span>
+			</a>
+		</div>
+	</section>
+
+	<dtml-if "report.get('host', None)">
+	<section id="system_host" class="toggle_view show_toggle_view">
+		<header class="toggle_contols">
+			<h3>Host</h3>
+			<a class="toggle_control" href="#">
+				<span class="button toggle_control_show" onclick="return showToggleView(this);">show</span>
+				<span class="button toggle_control_hide" onclick="return hideToggleView(this);">hide</span>
+			</a>
+		</header>
+		<div class="kv_table">
+			<table>
+				<dtml-in "[
+					('hostname', 'Hostname'),
+					('os_system', 'Operating System'),
+					('os_version', 'OS Version'),
+					('os_release', 'OS Release'),
+					('os_machine', 'OS Machine'),
+					('os_processor', 'OS Processor'),
+					('cpu_cores', 'CPU Cores'),
+					('linux_name', 'Linux Distro'),
+					('linux_version', 'Linux Version'),
+				]" prefix=host>
+				<dtml-if "report['host'].get(host_key) is not None">
+				<tbody>
+					<tr>
+						<th scope="row"><div><dtml-var host_item></div></th>
+						<td><div><dtml-var "report['host'][host_key]"></div></td>
+					</tr>
+				</tbody>
+				</dtml-if>
+				</dtml-in>
+			</table>
+		</div>
+	</section>
+	</dtml-if>
+
+	<dtml-if "report.get('software', None)">
+	<section id="system_software" class="toggle_view show_toggle_view">
+		<header class="toggle_contols">
+			<h3>Software</h3>
+			<a class="toggle_control" href="#">
+				<span class="button toggle_control_show" onclick="return showToggleView(this);">show</span>
+				<span class="button toggle_control_hide" onclick="return hideToggleView(this);">hide</span>
+			</a>
+		</header>
+		<div class="kv_table">
+			<table>
+				<dtml-in "[
+					('python', 'Python'),
+					('python_version', 'Python Version'),
+					('python_compiler', 'Python Compiler'),
+					('python_build_no', 'Python Build No.'),
+					('python_build_date', 'Python Build Date'),
+					('python_arch_bits', 'Python Architecture Bits'),
+					('python_arch_linkage', 'Python Architecture Linkage'),
+					('python_executable', 'Python Executable'),
+					('zope', 'Zope'),
+					('zope_runtime', 'Zope Runtime'),
+					('zope_pid', 'Zope PID'),
+					('zope_thread', 'Zope Thread'),
+					('INSTANCE_HOME', 'INSTANCE_HOME'),
+					('SOFTWARE_HOME', 'SOFTWARE_HOME'),
+					('ZOPE_HOME', 'ZOPE_HOME'),
+				]" prefix=software>
+				<dtml-if "report['software'].get(software_key) is not None">
+				<tbody>
+					<tr>
+						<th scope="row"><div><dtml-var software_item></div></th>
+						<td><div><dtml-var "report['software'][software_key]"></div></td>
+					</tr>
+				</tbody>
+				</dtml-if>
+				</dtml-in>
+			</table>
+		</div>
+	</section>
+	</dtml-if>
+
+	<dtml-if "report.get('servers', None)">
+	<dtml-if "report.get('servers', None)">
+	<section id="system_servers" class="toggle_view">
+		<header class="toggle_contols">
+			<h3>Servers</h3>
+			<a class="toggle_control" href="#">
+				<span class="button toggle_control_show" onclick="return showToggleView(this);">show</span>
+				<span class="button toggle_control_hide" onclick="return hideToggleView(this);">hide</span>
+			</a>
+		</header>
+		<div class="row_table">
+			<table>
+				<thead>
+					<tr>
+						<th scope="col" class="number"><div class="number">#</div></th>
+						<th scope="col"><div>File No.</div></th>
+						<th scope="col"><div>Server</div></th>
+						<th scope="col"><div>Hostname</div></th>
+						<th scope="col"><div>IP Address</div></th>
+						<th scope="col"><div>Port</div></th>
+						<th scope="col"><div>Class</div></th>
+					</tr>
+				</thead>
+				<dtml-in "report['servers']" prefix=server mapping>
+				<tbody>
+					<tr>
+						<th scope="row"><div class="number"><dtml-var server_number></div></th>
+						<th scope="row"><div class="key"><dtml-var "server_item['key']"></div></th>
+						<td><div><dtml-var name></div></td>
+						<td><div><dtml-var hostname></div></td>
+						<td><div><dtml-var ip></div></td>
+						<td><div><dtml-var port></div></td>
+						<td><div><dtml-var sclass></div></td>
+					</tr>
+				</tbody>
+				</dtml-in>
+			</table>
+		</div>
+	</section>
+	</dtml-if>
+	</dtml-if>
+
+	<dtml-if "report.get('databases', None)">
+	<section id="system_databases" class="toggle_view">
+		<header class="toggle_contols">
+			<h3>Databases</h3>
+			<a class="toggle_control" href="#">
+				<span class="button toggle_control_show" onclick="return showToggleView(this);">show</span>
+				<span class="button toggle_control_hide" onclick="return hideToggleView(this);">hide</span>
+			</a>
+		</header>
+		<div class="row_table">
+			<table>
+				<thead>
+					<tr>
+						<th scope="col" class="number"><div class="number">#</div></th>
+						<th scope="col"><div>Database</div></th>
+						<th scope="col"><div>Mount Point</div></th>
+						<th scope="col"><div>Location</div></th>
+						<th scope="col"><div>Size</div></th>
+						<th scope="col"><div>Objects</div></th>
+					</tr>
+				</thead>
+				<dtml-in "report['databases']" prefix=database mapping>
+				<tbody>
+					<tr>
+						<th scope="row"><div class="number"><dtml-var database_number></div></th>
+						<th scope="row"><div class="key"><a href="../Database/<dtml-var "database_item['name']">/manage_main"><dtml-var "database_item['name']"></a></div></th>
+						<td><div><a href="<dtml-var BASE1>/<dtml-var mount_point>/manage_main"><dtml-var mount_point></a></div></td>
+						<td><div><dtml-var location></div></td>
+						<td><div><dtml-var size></div></td>
+						<td><div><dtml-var object_count></div></td>
+					</tr>
+				</tbody>
+				</dtml-in>
+			</table>
+		</div>
+	</section>
+	</dtml-if>
+
+	<dtml-if "report.get('dav_locks', None)">
+	<section id="system_dav_locks" class="toggle_view">
+		<header class="toggle_contols">
+			<h3>DAV locks</h3>
+			<a class="toggle_control" href="#">
+				<span class="button toggle_control_show" onclick="return showToggleView(this);">show</span>
+				<span class="button toggle_control_hide" onclick="return hideToggleView(this);">hide</span>
+			</a>
+		</header>
+	</section>
+	</dtml-if>
+
+	<dtml-if "report.get('reference_counts', None)">
+	<section id="system_reference_counts" class="toggle_view">
+		<header class="toggle_contols">
+			<h3>Reference Counts</h3>
+			<a class="toggle_control" href="#">
+				<span class="button toggle_control_show" onclick="return showToggleView(this);">show</span>
+				<span class="button toggle_control_hide" onclick="return hideToggleView(this);">hide</span>
+			</a>
+		</header>
+	</section>
+	</dtml-if>
+
+	<dtml-if "report.get('zodb_connections', None)">
+	<section id="system_zodb_connections" class="toggle_view">
+		<header class="toggle_contols">
+			<h3>ZODB Connections</h3>
+			<a class="toggle_control" href="#">
+				<span class="button toggle_control_show" onclick="return showToggleView(this);">show</span>
+				<span class="button toggle_control_hide" onclick="return hideToggleView(this);">hide</span>
+			</a>
+		</header>
+	</section>
+	</dtml-if>
+
+	<dtml-if "report.get('config_items', None)">
+	<section id="system_config_items" class="toggle_view">
+		<header class="toggle_contols">
+			<h3>Configuration</h3>
+			<a class="toggle_control" href="#">
+				<span class="button toggle_control_show" onclick="return showToggleView(this);">show</span>
+				<span class="button toggle_control_hide" onclick="return hideToggleView(this);">hide</span>
+			</a>
+		</header>
+		<div class="row_table">
+			<table>
+				<thead>
+					<tr>
+						<th scope="col" class="number"><div class="number">#</div></th>
+						<th scope="col"><div class="key">Key</div></th>
+						<th scope="col"><div>Type</div></th>
+						<th scope="col"><div>Value</div></th>
+					</tr>
+				</thead>
+				<dtml-in "report['config_items']" prefix=configuration mapping>
+				<tbody>
+					<tr>
+						<th scope="row"><div class="number"><dtml-var configuration_number></div></th>
+						<th scope="row"><div class="key"><dtml-var key></div></th>
+						<td><div class="nowrap"><dtml-var "configuration_item['type']"></div></td>
+						<td><div><dtml-var "configuration_item['value']"></div></td>
+					</tr>
+				</tbody>
+				</dtml-in>
+			</table>
+		</div>
+	</section>
+	</dtml-if>
+
+	<dtml-if "report.get('environ_items', None)">
+	<section id="system_environ_items" class="toggle_view">
+		<header class="toggle_contols">
+			<h3>Environment</h3>
+			<a class="toggle_control" href="#">
+				<span class="button toggle_control_show" onclick="return showToggleView(this);">show</span>
+				<span class="button toggle_control_hide" onclick="return hideToggleView(this);">hide</span>
+			</a>
+		</header>
+		<div class="row_table">
+			<table>
+				<thead>
+					<tr>
+						<th scope="col" class="number"><div class="number">#</div></th>
+						<th scope="col"><div class="key">Key</div></th>
+						<th scope="col"><div>Type</div></th>
+						<th scope="col"><div>Value</div></th>
+					</tr>
+				</thead>
+				<dtml-in "report['environ_items']" prefix=environment mapping>
+				<tbody>
+					<tr>
+						<th scope="row"><div class="number"><dtml-var environment_number></div></th>
+						<th scope="row"><div class="key"><dtml-var key></div></th>
+						<td><div class="nowrap"><dtml-var "environment_item['type']"></div></td>
+						<td><div><dtml-var "environment_item['value']"></div></td>
+					</tr>
+				</tbody>
+				</dtml-in>
+			</table>
+		</div>
+	</section>
+	</dtml-if>
+
+</dtml-if>
+</main>
+<dtml-var scanner_css>
+<dtml-var scanner_js>
+<dtml-var "scanner_unicode(REQUEST)">
+<dtml-var manage_page_footer>
+</dtml-let>

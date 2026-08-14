@@ -1,127 +1,68 @@
-# -*- coding: utf8 -*-
-u"""ZopeScanner Product.
-
-# =============================================================================
-#
-#                            Z o p e  S c a n n e r
-#
-# -----------------------------------------------------------------------------
-# Copyright (c) 2009 - 2014, Sebastian Lühnsdorf - Web-Solutions
-# For more information see the README.txt file or visit www.zope.biz
-# -----------------------------------------------------------------------------
-#
-# This software is subject to the provisions of the Zope Public License,
-# Version 2.1 (ZPL).
-#
-# A copy of the ZPL should accompany this distribution.
-#
-# THIS SOFTWARE IS PROVIDED "AS IS" AND ANY AND ALL EXPRESS OR IMPLIED
-# WARRANTIES ARE DISCLAIMED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-# WARRANTIES OF TITLE, MERCHANTABILITY, AGAINST INFRINGEMENT, AND FITNESS
-# FOR A PARTICULAR PURPOSE
-#
-# =============================================================================
-"""
+"""ZopeScanner."""
 
 
-# =============================================================================
-# Imports
+from Products.ZopeScanner.imports_zope import ApplicationManager
+from Products.ZopeScanner.imports_zope import DTMLFile
+from Products.ZopeScanner.imports_zope import Implicit
+from Products.ZopeScanner.imports_zope import Item
 
-from config import ConfigScanner
-from logs import LogScanner
-from modules import ModuleScanner
-from objects import ObjectScanner
-from products import ProductScanner
-from resources import ScannerResources
-from resources.imports import ApplicationManager, DTMLFile, Implicit, Item
-from servers import ServerScanner
-from sources import SourceScanner
+from Products.ZopeScanner.logs import LogScanner
+from Products.ZopeScanner.modules import ModuleScanner
+from Products.ZopeScanner.objects import ObjectScanner
+from Products.ZopeScanner.products import ProductScanner
+from Products.ZopeScanner.sources import SourceScanner
+from Products.ZopeScanner.system import SystemScanner
+from Products.ZopeScanner.values import ValueScanner
 
-
-# =============================================================================
-# ZopeScanner Product Class
 
 class ZopeScanner(
-    ConfigScanner, LogScanner, ModuleScanner, ObjectScanner, ProductScanner,
-    ServerScanner, SourceScanner, ScannerResources, Item, Implicit
+    LogScanner, ModuleScanner, ObjectScanner, ProductScanner, SourceScanner,
+    SystemScanner, ValueScanner, Item, Implicit
 ):
     """ZopeScanner Product Class."""
-
-    # -------------------------------------------------------------------------
-    # Zope Assetts
 
     id = 'ZopeScanner'
     name = 'ZopeScanner'
     title = 'ZopeScanner'
     meta_type = 'ZopeScanner'
+
     icon = 'misc_/ZopeScanner/ZopeScanner.png'
+    zmi_icon = 'fas fa-microscope'
 
     manage_options = (
-        {'label': 'ZopeScanner', 'action': 'scanner_main_form'},
-        {'label': 'Config', 'action': 'scan_config_form'},
-        {'label': 'Servers', 'action': 'scan_server_form'},
-        {'label': 'Products', 'action': 'scan_product_form'},
-        {'label': 'Objects', 'action': 'scan_object_form'},
-        {'label': 'Modules', 'action': 'scan_module_form'},
-        {'label': 'Sources', 'action': 'scan_source_form'},
-        {'label': 'Log Files', 'action': 'scan_logfile_form'},
+        {'label': 'System', 'action': 'scan_system_form'},
+        {'label': 'Products', 'action': 'scan_products_form'},
+        {'label': 'Objects', 'action': 'scan_objects_form'},
+        {'label': 'Modules', 'action': 'scan_modules_form'},
+        {'label': 'Sources', 'action': 'scan_sources_form'},
+        {'label': 'Log Files', 'action': 'scan_logfiles_form'},
     )
 
     def locked_in_version(self):
-        """Lorem Ipsum."""
+        """Return 1 (True) if this instance was modified in any version.
+
+        Needed for compatibility with Zope's legacy versioning system.
+        Since Zope-2.0.0, until Zope-2.11.8.
+        """
         return 0
 
-    # -------------------------------------------------------------------------
-    # Product Assetts
-
     def scanner_url(self):
-        """Lorem Ipsum."""
+        """Return this instance's absolute URL."""
         return self.absolute_url()
 
-    # -------------------------------------------------------------------------
-    # User Interface Assetts
+    scanner_css = DTMLFile('resources/css', globals())
 
-    breadcrumbs_root = ('scanner_main_form', 'ZopeScanner')
+    scanner_js = DTMLFile('resources/js', globals())
 
-    scanner_main_form = DTMLFile('ZopeScanner', globals())
-
-    # -------------------------------------------------------------------------
-    # User Interface Customisation
-
-    batch_size = 20
-    group_lists = True
-    use_js = True
-
-    def set_options(self, REQUEST):
-        """Store user interface options.
-
-        Store changes to options of the user interface either in cookies on a
-        per user level or as global defaults in attributes of the Product.
-        """
-        #
-
-        # format options
+    def scanner_unicode(self, REQUEST):
+        """Force encoding of the response to Unicode."""
+        REQUEST.RESPONSE.setHeader('Content-Type', 'text/html;charset=UTF8')
         try:
-            batch_size = int(REQUEST.form.get('batch_size', 20))
-        except Exception:
-            batch_size = 20
-        group_lists = REQUEST.form.get('group_lists', None) and True or False
-        use_js = REQUEST.form.get('use_js', None) and True or False
+            return unicode('')
+        except NameError:
+            return ''
 
-        # store options as defaults
-        if REQUEST.form.get('set_defaults', None):
-            self.batch_size = batch_size
-            self.group_lists = group_lists
-            self.use_js = use_js
-
-        # store options in cookies
-        else:
-            REQUEST.RESPONSE.setCookie('ZopeScanner_batch_size', batch_size)
-            REQUEST.RESPONSE.setCookie('ZopeScanner_group_lists', group_lists)
-            REQUEST.RESPONSE.setCookie('ZopeScanner_use_js', use_js)
-
-        # redirect
-        REQUEST.RESPONSE.redirect('%s/scanner_main_form' % self.scanner_url())
+    breadcrumbs_html = DTMLFile('resources/breadcrumbs', globals())
 
 
 def install_ZopeScanner(context):
@@ -142,6 +83,7 @@ def install_ZopeScanner(context):
     except AttributeError:
         pass
     options = list(ApplicationManager.manage_options)
-    options.append(
-        {'label': 'ZopeScanner', 'action': scanner.id + '/manage_workspace'},)
+    options.append({
+        'label': 'ZopeScanner',
+        'action': scanner.id + '/manage_workspace'})
     ApplicationManager.manage_options = tuple(options)

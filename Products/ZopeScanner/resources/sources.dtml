@@ -1,0 +1,268 @@
+<dtml-let
+	report="scan_sources(REQUEST.form)"
+	breadcrumbs="report['breadcrumbs']"
+	path="report['path']"
+
+	order_by="report['order_by']"
+	show_hidden_files="report['show_hidden_files']"
+
+	bytes_per_row="report['bytes_per_row']"
+	bytes_per_page="report['bytes_per_page']"
+	page_number="report['page_number']"
+
+>
+<dtml-var manage_page_header>
+<dtml-let MANAGE_TABS_NO_BANNER="1">
+<dtml-var manage_tabs>
+</dtml-let>
+<dtml-var breadcrumbs_html>
+<main class="container-fluid">
+
+	<dtml-if "report.get('exception')">
+
+
+
+<!-- TODO !!! -->
+
+
+
+	<dtml-elif "report.get('directory')">
+	<section id="products_base_class">
+		<h2>
+			<span class="value_type">File Directory</span>
+			<dtml-var "report['filename']" html_quote>
+		</h2>
+
+		<form action="scan_sources_form" method="post" class="controls">
+			<input type="hidden" name="path" value="<dtml-var path>">
+			<div class="control">
+				<strong><label for="">Root Folder</label></strong>
+				<select id="rootpath" name="rootpath" onchange="document.getElementById('control_update_button').click();">
+				<dtml-in "report['rootpaths']" prefix=rootpath>
+					<option value="<dtml-var rootpath_key>"<dtml-if "report['rootpath_key'] == rootpath_key"> selected</dtml-if>><dtml-var rootpath_item></option>
+				</dtml-in>
+				</select>
+			</div>
+			<div class="control">
+				<strong><label for="">Order</label></strong>
+				<select id="order_by" name="order_by" onchange="document.getElementById('control_update_button').click();">
+					<option value="name"<dtml-if "order_by == 'name'"> selected</dtml-if>>Name</option>
+					<option value="type"<dtml-if "order_by == 'type'"> selected</dtml-if>>Type</option>
+					<option value="size"<dtml-if "order_by == 'size'"> selected</dtml-if>>Size</option>
+					<option value="atime"<dtml-if "order_by == 'atime'"> selected</dtml-if>>Accessed</option>
+					<option value="ctime"<dtml-if "order_by == 'ctime'"> selected</dtml-if>>Created</option>
+					<option value="mtime"<dtml-if "order_by == 'mtime'"> selected</dtml-if>>Modified</option>
+				</select>
+			</div>
+			<div class="control">
+				<strong><label for="">Hidden</label></strong>
+				<div>
+					<input type="checkbox" id="show_hidden_files" name="show_hidden_files" value="True" onchange="document.getElementById('control_update_button').click();"<dtml-if show_hidden_files> checked</dtml-if>>
+					<label for="show_hidden_files">Show Hidden Files</label>
+				</div>
+			</div>
+			<div class="control_narrow">
+				<button class="button_submit" id="control_update_button">Update</button>
+			</div>
+		</form>
+
+		<div class="row_table">
+			<table>
+				<thead>
+					<tr>
+						<th scope="col" class="number"><div class="number">#</div></th>
+						<th scope="col"><div class="key">File Name</div></th>
+						<th scope="col"><div>File Type</div></th>
+						<th scope="col"><div class="number">Size</div></th>
+						<th scope="col"><div class="number">Accessed</div></th>
+						<th scope="col"><div class="number">Created</div></th>
+						<th scope="col"><div class="number">Modified</div></th>
+					</tr>
+				</thead>
+				<dtml-in "report['directory']" prefix=file mapping>
+				<tbody id="logfile_table">
+					<tr>
+						<th scope="row"><div class="number minor"><dtml-var file_number></div></th>
+						<td><div class="key"><a href="<dtml-var BASE1>/Control_Panel/ZopeScanner/scan_sources_form?path=<dtml-var path>/<dtml-var name>"><dtml-var name></a></div></td>
+						<td><div><dtml-var type></div></td>
+						<td><div class="split">
+							<span><dtml-var size_formatted></span>
+							<span><dtml-var size></span>
+						</div></td>
+						<td><div class="number"><dtml-var atime></div></td>
+						<td><div class="number"><dtml-var ctime></div></td>
+						<td><div class="number"><dtml-var mtime></div></td>
+					</tr>
+				</tbody>
+				</dtml-in>
+			</table>
+		</div>
+
+	</section>
+
+
+	<dtml-elif "report.get('archive')">
+	<section id="products_base_class">
+		<h2>
+			<span class="value_type">File Archive</span>
+			<dtml-var "report['filename']" html_quote>
+		</h2>
+		<!-- TODO: archive view -->
+	</section>
+
+
+	<dtml-elif "report.get('audio')">
+	<section id="products_base_class">
+		<h2>
+			<span class="value_type">Audio File</span>
+			<dtml-var "report['filename']" html_quote>
+		</h2>
+		<!-- TODO: audio view -->
+	</section>
+
+
+	<dtml-elif "report.get('image')">
+	<section id="products_base_class">
+		<h2>
+			<span class="value_type">Image File</span>
+			<dtml-var "report['filename']" html_quote>
+		</h2>
+		<!-- TODO: image view -->
+	</section>
+
+
+	<dtml-elif "report.get('video')">
+	<section id="products_base_class">
+		<h2>
+			<span class="value_type">Video File</span>
+			<dtml-var "report['filename']" html_quote>
+		</h2>
+		<!-- TODO: video view -->
+	</section>
+
+
+	<dtml-elif "report.get('source')">
+	<section id="products_base_class">
+		<h2>
+			<span class="value_type">Source Code</span>
+			<dtml-var "report['filename']" html_quote>
+		</h2>
+		<!-- TODO: source view -->
+	</section>
+
+
+	<dtml-elif "report.get('plaintext')">
+	<section id="products_base_class">
+		<h2>
+			<span class="value_type">Text File</span>
+			<dtml-var "report['filename']" html_quote>
+		</h2>
+		<!-- TODO: text view -->
+	</section>
+
+
+	<dtml-elif "report.get('hexdump')">
+	<dtml-let
+		contents="report['hexdump']['contents']"
+		total_pages="report['hexdump']['total_pages']"
+		contents_len="len(contents)"
+		displayable_ascii_bytes="range(32, 127)"
+	>
+	<section id="products_base_class">
+		<h2>
+			<span class="value_type">Binary</span>
+			<dtml-var "report['filename']" html_quote>
+		</h2>
+
+		<form action="scan_sources_form" method="post" class="controls">
+			<input type="hidden" name="path" value="<dtml-var path>">
+
+			<div class="control">
+				<strong><label for="">Bytes per Row</label></strong>
+				<select id="bytes_per_row" name="bytes_per_row" onchange="document.getElementById('control_update_button').click();">
+				<dtml-in "[8, 16, 24, 32, 40, 48, 56, 64]" prefix=choice>
+					<option value="<dtml-var choice_item>"<dtml-if "bytes_per_row == choice_item"> selected</dtml-if>><dtml-var choice_item></option>
+				</dtml-in>
+				</select>
+			</div>
+			<div class="control">
+				<strong><label for="">Bytes per Page</label></strong>
+				<select id="bytes_per_page" name="bytes_per_page" onchange="document.getElementById('control_update_button').click();">
+				<dtml-in "[
+					(1 * 1024, '1K'),
+					(2 * 1024, '2K'),
+					(4 * 1024, '4K'),
+					(8 * 1024, '8K'),
+					(16 * 1024, '16K'),
+					(32 * 1024, '32K'),
+					(64 * 1024, '64K'),
+					(128 * 1024, '128K'),
+				]" prefix=choice>
+					<option value="<dtml-var choice_key>"<dtml-if "bytes_per_page == choice_key"> selected</dtml-if>><dtml-var choice_item></option>
+				</dtml-in>
+				</select>
+			</div>
+			<div class="control">
+				<strong><label for="">Page Number</label></strong>
+				<div>
+					<button id="page_number_first" onclick="return gotoFirstPage();">⇤</button>
+					<button id="page_number_previous" onclick="return gotoPreviousPage();">←</button>
+					page <input id="page_number" name="page_number" min="1" max="<dtml-var total_pages>" type="number" value="<dtml-var page_number>" onchange="document.getElementById('control_update_button').click();"> of <dtml-var total_pages>
+					<button id="page_number_next" onclick="return gotoNextPage();">→</button>
+					<button id="page_number_last" onclick="return gotoLastPage();">⇥</button>
+				</div>
+			</div>
+			<div class="control_narrow">
+				<button class="button_submit" id="control_update_button">Update</button>
+			</div>
+		</form>
+
+<dtml-try>
+		<div class="row_table">
+			<table>
+				<thead>
+					<tr>
+						<th scope="col" class="number"><div class="number">#</div></th>
+						<dtml-in "range(bytes_per_row)" prefix=index>
+							<th scope="col"><div class="narrow"><dtml-var "'%02x' % index_item"></div></th>
+						</dtml-in>
+						<th scope="col"><div>ASCII</div></th>
+					</tr>
+				</thead>
+				<dtml-in "range(0, contents_len, bytes_per_row)" prefix=position>
+				<tbody>
+					<tr>
+						<th scope="row"><div class="number"><dtml-var "(1 + position_index + (page_number - 1) * bytes_per_page)"></div></th>
+						<dtml-in "range(bytes_per_row)" prefix=row>
+						<td><div class="narrow"><dtml-if "position_item + row_item < contents_len"><dtml-var "'%02x' % ord(contents[position_item + row_item])"><dtml-else>&nbsp;</dtml-if></div></td>
+						</dtml-in>
+						<td><div class="code" style="white-space: preserve;"><dtml-in "range(bytes_per_row)" prefix=row><dtml-if "position_item + row_item < contents_len"><dtml-if "ord(contents[position_item + row_item]) in displayable_ascii_bytes"><dtml-var "contents[position_item + row_item]" html_quote><dtml-else>.</dtml-if><dtml-else> </dtml-if></dtml-in></div></td>
+					</tr>
+				</tbody>
+				</dtml-in>
+			</table>
+		</div>
+<dtml-except>
+	<div class="DEBUG">
+		<dl>
+
+			<dt>bytes_per_row</dt>
+			<dd><dtml-var "repr(bytes_per_row)" html_quote></dd>
+
+			<dt>report</dt>
+			<dd><dtml-var "repr(report)" html_quote></dd>
+
+		</dl>
+	</div>
+</dtml-try>
+
+	</section>
+	</dtml-let>
+	</dtml-if>
+
+</main>
+<dtml-var scanner_css>
+<dtml-var scanner_js>
+<dtml-var "scanner_unicode(REQUEST)">
+<dtml-var manage_page_footer>
+</dtml-let>

@@ -1,0 +1,121 @@
+<dtml-let
+	path="REQUEST.get('path', '')"
+	report="scan_products(path)"
+	breadcrumbs="report['breadcrumbs']"
+>
+<dtml-var manage_page_header>
+<dtml-let MANAGE_TABS_NO_BANNER="1">
+<dtml-var manage_tabs>
+</dtml-let>
+<dtml-var breadcrumbs_html>
+<main class="container-fluid">
+<dtml-if "'base_class' in report">
+
+	<section id="products_base_class">
+		<h2>Base Class “<dtml-in "report['base_class']['name'].split('.')" prefix=part><dtml-var part_item><dtml-unless part_end>.</dtml-unless></dtml-in>”</h2>
+		<nav class="paging">
+			<dtml-let
+				index="report['base_class']['index']"
+				prev="report['base_class']['prev']"
+				next="report['base_class']['next']"
+			>
+				<a class="button button_up" href="<dtml-var BASE1>/Control_Panel/ZopeScanner/scan_products_form">
+					<i class="icon icon_up"></i>
+					back to Products Scanner
+				</a>
+				<a class="button button_prev" href="<dtml-var BASE1>/Control_Panel/ZopeScanner/scan_products_form?path=<dtml-var "prev['index']">">
+					<i class="icon icon_left"></i>
+					<dtml-var "prev['name']">
+				</a>
+				<a class="button button_next" href="<dtml-var BASE1>/Control_Panel/ZopeScanner/scan_products_form?path=<dtml-var "next['index']">">
+					<dtml-var "next['name']">
+					<i class="icon icon_right"></i>
+				</a>
+			</dtml-let>
+		</nav>
+		<div class="kv_table">
+			<table>
+				<dtml-in "[
+					('name', 'Name'),
+					('product', 'Product Package'),
+					('permission', 'Permission'),
+					('action', 'Action'),
+					('container_filter', 'Container Filter'),
+					('visibility', 'Visibility'),
+					('interfaces', 'Interfaces'),
+					('instance', 'Instance'),
+				]" prefix=base_class>
+				<dtml-if "report['base_class'].get(base_class_key) is not None">
+				<tbody>
+					<tr>
+						<th scope="row"><div><dtml-var base_class_item></div></th>
+						<td><div><dtml-var "report['base_class'][base_class_key]"></div></td>
+					</tr>
+				</tbody>
+				</dtml-if>
+				</dtml-in>
+			</table>
+		</div>
+	</section>
+
+<dtml-var object_form>
+
+<dtml-elif path>
+<dtml-var object_form>
+<dtml-else>
+
+	<p class="form-help alert alert-info">
+		Product packages are plugins, that may register Base Classes, which can be added through Zope's OFS in the object database (ZODB).
+		Products such as ZopeScanner, that do not register a Base Class, are currently not listed.
+	</p>
+
+	<section id="products_product_packages">
+		<h2>Product Packages</h2>
+		<div class="row_table">
+			<table>
+				<thead>
+					<tr>
+						<th scope="col" class="number"><div class="number">#</div></th>
+						<th scope="col"><div class="key">Product Package</div></th>
+						<th scope="col"><div>Base Classes</div></th>
+					</tr>
+				</thead>
+				<dtml-in "list(report['packages'].items())" prefix=product sort>
+				<tbody>
+					<tr>
+						<th scope="row"><div class="number minor"><dtml-var product_number></div></th>
+						<th scope="row"><div class="key"><dtml-var product_key></div></th>
+						<td>
+							<div class="tags">
+								<dtml-in product_item prefix=base_class>
+									<a class="tag" href="<dtml-var BASE1>/Control_Panel/ZopeScanner/scan_products_form?path=<dtml-var base_class_item>"><dtml-var base_class_key></a>
+								<dtml-else>
+									<em>No Base Classes registered</em>
+								</dtml-in>
+							</div>
+						</td>
+					</tr>
+				</tbody>
+				</dtml-in>
+			</table>
+		</div>
+	</div>
+
+	<section id="products_base_classes">
+		<h2>Base Classes</h2>
+		<div class="tags">
+			<dtml-in "report['base_classes']" prefix=base_class>
+				<a class="tag" href="<dtml-var BASE1>/Control_Panel/ZopeScanner/scan_products_form?path=<dtml-var "base_class_item['index']">"><dtml-var "base_class_item['name']"></a>
+			<dtml-else>
+				<em>No Base Classes registered</em>
+			</dtml-in>
+		</div>
+	</div>
+
+</dtml-if>
+</main>
+<dtml-var scanner_css>
+<dtml-var scanner_js>
+<dtml-var "scanner_unicode(REQUEST)">
+<dtml-var manage_page_footer>
+</dtml-let>

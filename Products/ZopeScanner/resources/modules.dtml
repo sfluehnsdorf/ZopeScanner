@@ -1,0 +1,111 @@
+<dtml-let
+	path="REQUEST.get('path', '')"
+	report="scan_modules(path)"
+	breadcrumbs="report['breadcrumbs']"
+	>
+<dtml-var manage_page_header>
+<dtml-let MANAGE_TABS_NO_BANNER="1">
+<dtml-var manage_tabs>
+</dtml-let>
+<dtml-var breadcrumbs_html>
+<main class="container-fluid">
+<dtml-if "'module' in report">
+
+	<section id="modules_module">
+		<h2>Module “<dtml-in "report['module']['name'].split('.')" prefix=part><dtml-var part_item><dtml-unless part_end>.</dtml-unless></dtml-in>”</h2>
+
+		<nav class="paging">
+			<dtml-let
+				prev="report['module']['prev']"
+				next="report['module']['next']"
+			>
+				<a class="button button_up" href="<dtml-var BASE1>/Control_Panel/ZopeScanner/scan_modules_form">
+					<i class="icon icon_up"></i>
+					back to Modules Scanner
+				</a>
+				<a class="button button_prev" href="<dtml-var BASE1>/Control_Panel/ZopeScanner/scan_modules_form?path=<dtml-var prev>">
+					<i class="icon icon_left"></i>
+					<dtml-var prev>
+				</a>
+				<a class="button button_next" href="<dtml-var BASE1>/Control_Panel/ZopeScanner/scan_modules_form?path=<dtml-var next>">
+					<dtml-var next>
+					<i class="icon icon_right"></i>
+				</a>
+			</dtml-let>
+		</nav>
+
+		<div class="kv_table">
+			<table>
+				<dtml-in "[
+					('package', 'Package'),
+					('module_name', 'Module Name'),
+					('module_filename', 'Module Filename'),
+					('source_filename', 'Source Filename'),
+					('docstring', 'Doc String'),
+				]" prefix=module>
+				<dtml-if "report['module'].get(module_key) is not None">
+				<tbody>
+					<tr>
+						<th scope="row"><div><dtml-var module_item></div></td>
+						<td><div><dtml-var "repr(report['module'][module_key])" html_quote></div></td>
+					</tr>
+				</tbody>
+				</dtml-if>
+				</dtml-in>
+			</table>
+		</div>
+
+	</section>
+
+<dtml-try>
+<dtml-var object_form>
+<dtml-except>
+	nope
+</dtml-try>
+
+<dtml-elif path>
+<dtml-var object_form>
+<dtml-else>
+
+	<section id="modules_module_packages">
+		<h2>Module Packages</h2>
+		<div class="tags">
+		<dtml-in "report['modules']" prefix=package sort>
+			<a class="tag" href="#<dtml-var package_key>"><dtml-var package_key></a>
+		</dtml-in>
+		</div>
+		<div class="row_table">
+			<table>
+				<thead>
+					<tr>
+						<th scope="col" class="number"><div class="number">#</div></th>
+						<th scope="col"><div class="key">Module Package</div></th>
+						<th scope="col"><div>Package Modules</div></th>
+					</tr>
+				</thead>
+				<dtml-in "report['modules']" prefix=package sort>
+				<tbody>
+					<tr>
+						<th scope="row"><div class="number"><dtml-var package_number></div></th>
+						<th scope="row"><div class="key"><a name="<dtml-var package_key>"><dtml-var package_key></a></div></th>
+						<td>
+							<div class="tags">
+								<dtml-in package_item prefix=module sort>
+									<a class="tag" href="<dtml-var BASE1>/Control_Panel/ZopeScanner/scan_modules_form?path=<dtml-var module_item>"><dtml-var module_item></a>
+								</dtml-in>
+							</div>
+						</td>
+					</tr>
+				</tbody>
+				</dtml-in>
+			</table>
+		</div>
+	</div>
+
+</dtml-if>
+</main>
+<dtml-var scanner_css>
+<dtml-var scanner_js>
+<dtml-var "scanner_unicode(REQUEST)">
+<dtml-var manage_page_footer>
+</dtml-let>

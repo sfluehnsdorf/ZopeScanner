@@ -1,0 +1,18 @@
+<dtml-let
+  path="REQUEST.get('path', '')"
+  report="scan_objects(path)"
+  breadcrumbs="report['breadcrumbs']"
+  >
+<dtml-var manage_page_header>
+<dtml-let MANAGE_TABS_NO_BANNER="1">
+<dtml-var manage_tabs>
+</dtml-let>
+<dtml-var breadcrumbs_html>
+<main class="container-fluid">
+<dtml-var object_form>
+</main>
+<dtml-var scanner_css>
+<dtml-var scanner_js>
+<dtml-var "scanner_unicode(REQUEST)">
+<dtml-var manage_page_footer>
+</dtml-let>

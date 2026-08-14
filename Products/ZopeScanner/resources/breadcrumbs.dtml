@@ -1,11 +1,10 @@
 <ul class="breadcrumbs">
 <dtml-in breadcrumbs prefix=breadcrumb>
-  <li class="breadcrumbs">
-    <span class="std-text">
-      <a href="&dtml-scanner_url;/<dtml-var breadcrumb_key>" class="breadcrumbs">
-        <dtml-var breadcrumb_item>
-      </a>
-    </span>
-  </li>
+	<li>
+		<a href="<dtml-var scanner_url>/<dtml-var breadcrumb_key>" class="breadcrumbs" title="<dtml-var breadcrumb_item>">
+			<dtml-if breadcrumb_start><div class="icon"><img src="<dtml-var BASEPATH1>/<dtml-var icon>" border="0" alt=""></div></dtml-if>
+			<span class="label"><dtml-var breadcrumb_item></span>
+		</a>
+	</li>
 </dtml-in>
 </ul>

@@ -1,0 +1,193 @@
+<dtml-let
+	path="REQUEST.get('path', '')"
+	max_lines="int(REQUEST.get('max_lines', 25))"
+	auto_refresh_active="REQUEST.get('auto_refresh_active') == 'active'"
+	auto_refresh_delay="REQUEST.get('auto_refresh_delay', 60)"
+	report="scan_logfiles(path, max_lines, REQUEST)"
+	breadcrumbs="report['breadcrumbs']"
+>
+<dtml-var manage_page_header>
+<dtml-let MANAGE_TABS_NO_BANNER="1">
+<dtml-var manage_tabs>
+</dtml-let>
+<dtml-var breadcrumbs_html>
+<main class="container-fluid">
+
+	<dtml-if "report.get('log_files')">
+
+		<form action="scan_logfiles_form#tfoot" method="post" class="controls">
+			<div class="control_wide">
+				<strong><label for="">Log File</label></strong>
+				<select id="path" name="path" onchange="return change_log_file();">
+				<dtml-in "report['log_files']" prefix=log_file mapping>
+					<option value="<dtml-var filepath>"<dtml-if "path == filepath"> selected</dtml-if>><dtml-var filename></option>
+				</dtml-in>
+				</select>
+			</div>
+			<div>
+				<strong><label for="" for="max_lines">Lines</label></strong>
+				<div>
+					show max. 
+					<select id="max_lines" name="max_lines">
+					<dtml-in "[10, 25, 50, 75, 100, 250, 500, 750, 1000]" prefix=max_line>
+						<option value="<dtml-var max_line_item>"<dtml-if "max_lines == max_line_item"> selected</dtml-if>><dtml-var max_line_item></option>
+					</dtml-in>
+					</select>
+					lines
+				</div>
+			</div>
+			<div>
+				<strong><label for="">Auto Refresh</label></strong>
+				<div>
+					<input id="auto_refresh_active" type="checkbox" value="active"<dtml-if "auto_refresh_active == 'active'"> checked</dtml-if> class="switch" onchange="return change_auto_refresh();">
+					<label for="auto_refresh_active" class="switch_off">automatic refresh is off</label>
+					<label for="auto_refresh_delay" class="switch_on">automatic refresh every
+						<select id="auto_refresh_delay" name="auto_refresh_delay" onchange="return change_auto_refresh();">
+						<dtml-in "[
+							(1, 'second'), (2, '2 seconds'), (3, '3 seconds'), (4, '4 seconds'), (5, '5 seconds'),
+							(6, '6 seconds'), (7, '7 seconds'), (8, '8 seconds'), (9, '9 seconds'), (10, '10 seconds'),
+							(15, '15 seconds'), (20, '20 seconds'), (30, '30 seconds'), (45, '45 seconds'),
+							(60, 'minute'), (120, '2 minutes'), (300, '5 minutes'), (600, '10 minutes'),
+						]" prefix=delay>
+							<option value="<dtml-var delay_key>"<dtml-if "auto_refresh_delay == delay_key"> selected</dtml-if>><dtml-var delay_item></option>
+						</dtml-in>
+						</select>
+					</label>
+				</div>
+			</div>
+			<div class="control_narrow">
+				<button class="button_submit" onclick="update_logfile_table(); return false;">Update</button>
+			</div>
+		</form>
+
+		<div class="row_table" id="logfile_table">
+			<table>
+				<thead>
+					<tr>
+						<th scope="col" class="number"><div class="number">#</div></th>
+						<dtml-in "report['columns']" prefix=column>
+							<th scope="col"><div><dtml-var column_item></div></th>
+						</dtml-in>
+					</tr>
+				</thead>
+				<dtml-in "report['lines']" prefix=line>
+				<tbody>
+					<tr>
+						<th scope="row"><div class="number"><dtml-var line_number></div></th>
+						<dtml-in "report['columns']" prefix=column>
+							<td><div class="code"><dtml-var "line_item[column_index]" newline_to_br></div></td>
+						</dtml-in>
+					</tr>
+				</tbody>
+				</dtml-in>
+				<tfoot><tr><td><a name="tfoot"></a></td></tr></tfoot>
+			</table>
+		</div>
+
+	<dtml-else>
+		<p class="error-message">
+			No active log files were found were found in <code>logging</code> or <code>zLOG</code> modules.
+			Only loggers that write to the filesystem are recognized.
+			For example, a Logger writing to a stream such as <code>stderr</code> are ignored.
+		</p>
+	</dtml-if>
+
+	<script>
+
+		function create_logfile_table(result) {
+				console.log(4, 'create_logfile_table');
+			const columns_len = result.columns_len;
+			const lines = result.lines;
+			let html = '';
+			for (var line_index = 0; line_index < lines.length; line_index++) {
+				html += '<tbody>';
+				html += '<tr>';
+				html += '<th scope="row"><div class="number">' + (line_index + 1) + '</div></td>';
+				for (var column_index = 0; column_index < columns_len; column_index++) {
+					html += '<td><div class="code">' + (lines[line_index][column_index].replace(/\n/g, '<br>')) + '</div></td>';
+				}
+				html += '</tr>';
+				html += '</tbody>';
+			}
+			const table = document.getElementById('logfile_table');
+			table.querySelectorAll('tbody').forEach(element => element.remove());
+			table.querySelector('thead').insertAdjacentHTML('afterend', html);
+		}
+
+		function update_logfile_table() {
+				console.log(3, 'update_logfile_table');
+			const path_select = document.getElementById('path');
+			const path_select_val = path_select.options[path_select.selectedIndex].value;
+			const max_lines_select = document.getElementById('max_lines');
+			const max_lines_select_val = max_lines_select.options[max_lines_select.selectedIndex].value;
+			const form_data = {
+				'path': path_select_val,
+				'max_lines': max_lines_select_val,
+				'timestamp': Date.now(),
+			};
+			const form_params = new URLSearchParams(form_data);
+			fetch('<dtml-var scanner_url>/get_logfile_lines', {
+				method: 'POST',
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+				body: form_params.toString(),
+			})
+				.then(response => {
+					if (!response.ok) {
+						throw new Error(`HTTP error! Status: ${response.status}`);
+					}
+					return response.json(); 
+				})
+				.then(data => {
+					create_logfile_table(data);
+				})
+				.catch(error => function () {
+					console.error('Error:', error);
+				});
+		}
+
+		let auto_refresh_interval = null;
+
+		function change_auto_refresh() {
+			if (document.getElementById('auto_refresh_active').checked) {
+				const delay_select = document.getElementById('auto_refresh_delay');
+				const delay = parseInt(delay_select.options[delay_select.selectedIndex].value);
+				if (auto_refresh_interval) {
+					console.log(1, 'clear', auto_refresh_interval);
+					clearInterval(auto_refresh_interval);
+				}
+				auto_refresh_interval = setInterval(update_logfile_table, 1000 * delay);
+				console.log(1, 'new', auto_refresh_interval);
+			} else {
+				if (auto_refresh_interval) {
+					console.log(2, 'clear', auto_refresh_interval);
+					clearInterval(auto_refresh_interval);
+					auto_refresh_interval = null;
+				}
+			}
+		}
+
+		function change_log_file() {
+			const path_select = document.getElementById('path');
+			const path_select_val = path_select.options[path_select.selectedIndex].value;
+			const max_lines_select = document.getElementById('max_lines');
+			const max_lines_select_val = max_lines_select.options[max_lines_select.selectedIndex].value;
+			const auto_refresh_active = document.getElementById('auto_refresh_active').checked ? 'active' : '';
+			const auto_refresh_delay_select = document.getElementById('auto_refresh_delay');
+			const auto_refresh_delay = parseInt(auto_refresh_delay_select.options[auto_refresh_delay_select.selectedIndex].value);
+			const url = new URL(window.location.href);
+			url.search = ''; 
+			url.searchParams.set('path', path_select_val);
+			url.searchParams.set('max_lines', max_lines_select_val);
+			url.searchParams.set('auto_refresh_active', auto_refresh_active);
+			url.searchParams.set('auto_refresh_delay', auto_refresh_delay);
+			window.location.href = url.href;
+		}
+
+	</script>
+
+</main>
+<dtml-var scanner_css>
+<dtml-var scanner_js>
+<dtml-var "scanner_unicode(REQUEST)">
+<dtml-var manage_page_footer>
+</dtml-let>

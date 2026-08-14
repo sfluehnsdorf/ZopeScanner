@@ -1,132 +1,101 @@
-# -*- coding: utf8 -*-
-u"""ZopeScanner ModuleScanner.
-# =============================================================================
-#
-#                            Z o p e  S c a n n e r
-#
-# -----------------------------------------------------------------------------
-# Copyright (c) 2009 - 2014, Sebastian Lühnsdorf - Web-Solutions
-# For more information see the README.txt file or visit www.zope.biz
-# -----------------------------------------------------------------------------
-#
-# This software is subject to the provisions of the Zope Public License,
-# Version 2.1 (ZPL).
-#
-# A copy of the ZPL should accompany this distribution.
-#
-# THIS SOFTWARE IS PROVIDED "AS IS" AND ANY AND ALL EXPRESS OR IMPLIED
-# WARRANTIES ARE DISCLAIMED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-# WARRANTIES OF TITLE, MERCHANTABILITY, AGAINST INFRINGEMENT, AND FITNESS
-# FOR A PARTICULAR PURPOSE
-#
-# =============================================================================
-"""
-
-__doc__ = """ZopeScanner ModuleScanner"""
-
-__version__ = '$Revision: 1.3 $'[11:-2]
+"""Zope Scanner - ModuleScanner."""
 
 
-# =============================================================================
-# Imports
+from Products.ZopeScanner.imports_python import environ
+from Products.ZopeScanner.imports_python import exists
+from Products.ZopeScanner.imports_python import join
+from Products.ZopeScanner.imports_python import modules
+from Products.ZopeScanner.imports_python import splitext
 
-from resources.imports import (
-    exists, DTMLFile, INSTANCE_HOME, modules, normpath, prefix, SOFTWARE_HOME,
-    split, ZOPE_HOME)
+from Products.ZopeScanner.imports_zope import DTMLFile
 
 
-# =============================================================================
-# ModuleScanner Mix-in Class
+INSTANCE_HOME = environ.get('INSTANCE_HOME')
+SOFTWARE_HOME = environ.get('SOFTWARE_HOME')
+ZOPE_HOME = environ.get('ZOPE_HOME')
+
 
 class ModuleScanner:
     """ModuleScanner Mix-in Class."""
 
-    scan_module_form = DTMLFile('modules', globals())
+    scan_modules_form = DTMLFile('resources/modules', globals())
 
-    def scan_module(self, path=''):
+    def scan_modules(self, path=''):
         """Scan Modules.
 
         Perform a scan starting with the list of known Python modules,
         traversing along the specified by path.
         """
-        breadcrumbs = [
-            self.breadcrumbs_root,
-            ('scan_module_form', 'Modules')
-        ]
+        breadcrumbs = [('scan_modules_form', 'Module Scanner')]
+        form_id = breadcrumbs[0][0]
+        url_prefix = '%s/%s' % (self.scanner_url(), form_id)
+        report = {
+            'breadcrumbs': breadcrumbs,
+            'form_id': form_id,
+            'url_prefix': url_prefix,
+        }
 
-        if path == '/':
-            path = ''
+        path = path != '/' and path or ''
 
-        if path:
-            return self.scan(breadcrumbs, modules, path)
+        module_records = {}
+        module_packages = {}
+        module_instances = {}
+        module_names = list(modules.keys())
+        module_names.sort()
+        for name in list(module_names):
 
-        result = {}
-        result['breadcrumbs'] = breadcrumbs
-
-        xerrors = {}  # TODO: check to see causes for exceptions...
-
-        format_value = self.format_value
-        keys = modules.keys()
-        keys.sort()
-        module_map = {}
-        for key in keys:
+            module_filename = None
             try:
-                filename = modules.get(key, None).__file__
+                module = modules[name]
+                module_filename = module.__file__
+            except Exception:  # TODO: review Exception
+                module_filename = None
+            if not module_filename:
+                module_names.remove(name)
+                continue
 
-                def formatpath(filename):
-                    parts = []
-                    while split(filename)[0]:
-                        parts.append(split(filename)[1])
-                        filename = split(filename)[0]
-                    parts.append(filename)
-                    parts.reverse()
-                    path = '/'.join(parts)
-                    if path.endswith('pyc'):
-                        return path[:-1]
-                    return path
+            filename_base = splitext(module_filename)[0]
+            source_filename = None
+            for extension in ['.py', '.c']:
+                if exists(join(filename_base + extension)):
+                    source_filename = join(filename_base + extension)
+                    break
 
-                if filename.startswith(INSTANCE_HOME):
-                    filename = '<a href="scan_source_form?path=%s">%s</a>' % (
-                        'instance/' + formatpath(
-                            filename[len(INSTANCE_HOME) + 1:]),
-                        filename
-                    )
-                elif filename.startswith(SOFTWARE_HOME):
-                    filename = '<a href="scan_source_form?path=%s">%s</a>' % (
-                        'software/' + formatpath(
-                            filename[len(SOFTWARE_HOME) + 1:]),
-                        filename
-                    )
-                elif filename.startswith(ZOPE_HOME):
-                    filename = '<a href="scan_source_form?path=%s">%s</a>' % (
-                        'zope/' + formatpath(filename[len(ZOPE_HOME) + 1:]),
-                        filename
-                    )
-                else:
-                    pythonhome = normpath('%s/lib/python%s' % (
-                        prefix, version[:3]  # TODO: version does not exist???
-                    ))
-                    if not exists(pythonhome):
-                        pythonhome = normpath('%s/Lib' % prefix)
-                    if filename.startswith(pythonhome):
-                        filename = (
-                            '<a href="scan_source_form?path=%s">%s</a>' % (
-                                'python/' + formatpath(
-                                    filename[len(pythonhome) + 1:]),
-                                filename
-                            )
-                        )
+            package = str(name).split('.')[0]
+            module_packages[package] = module_packages.get(
+                package, []) + [name]
+            module_records[name] = {
+                'package': package,
+                'name': name,
+                'module_filename': module_filename,
+                'source_filename': source_filename,
+            }
+            module_instances[name] = modules.get(name)
+        report['modules'] = module_packages.items()
 
-            except Exception as e:
-                filename = '<em>%s</em><br>%s' % (e, e.__dict__)
-                xerrors[key] = '<em>%s</em><br>%s' % (e, e.__dict__)
-            root_module = str(key).split('.')[0]
-            module_map[root_module] = module_map.get(root_module, []) + [(
-                key,
-                format_value(modules.get(key, None), breadcrumbs[0], '', key),
-                filename
-            )]
-        module_map = {'x': map(lambda x: [x[0], x[1], ''], xerrors.items())}
-        result['modules'] = module_map.items()
+        if '/' in path:
+            module_name = path.split('/')[0]
+            breadcrumbs.append((
+                '%s?path=%s' % (form_id, module_name),
+                module_name))
+            report.update(self.scan_object(
+                breadcrumbs, form_id, module_instances, path, url_prefix))
+            return report
 
-        return result
+        elif path:
+            index = module_names.index(path)
+            module = modules.get(path)
+            module_record = module_records[path]
+            report['module'] = {
+                'prev': module_names[(index - 1) % len(module_names)],
+                'next': module_names[(index + 1) % len(module_names)],
+                'module': module,
+                'docstring': module and module.__doc__,
+            }
+            report['module'].update(module_record)
+            breadcrumbs.append((
+                '%s?path=%s' % (form_id, path), path))
+            report.update(self.scan_object(
+                breadcrumbs, form_id, module_instances, path,
+                url_prefix))
+        return report

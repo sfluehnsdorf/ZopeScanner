@@ -1,0 +1,640 @@
+<dtml-if "report.get('object')">
+
+	<header>
+		<h2>
+			<span class="value_type"><dtml-if "report['object'].get('type')"><dtml-var "report['object']['type']" html_quote><dtml-else>Object</dtml-if></span>
+			<dtml-if "report['object'].get('id')"><dtml-var "repr(report['object']['id'])" html_quote></dtml-if>
+			<dtml-if "report['object'].get('title')">&ldquo;<dtml-var "report['object']['title']" html_quote>&rdquo;</dtml-if>
+		</h2>
+	</header>
+
+	<section id="object_toc">
+		<header>
+			<h3>Contents</h3>
+		</header>
+		<div class="tags">
+			<dtml-in "[
+
+				('info', 'Object Info'),
+				('callables', 'Callables'),
+				('attributes', 'Attributes'),
+				('sequence_items', 'Sequence'),
+				('mapping_items', 'Mapping'),
+
+				('ofs_info', 'OFS Object Info'),
+				('sub_objects', 'Folder Contents'),
+				('properties', 'Properties'),
+				('permissions', 'Permissions'),
+				('roles', 'Roles'),
+				('ownership', 'Ownership'),
+				('undoable', 'Undoable Transactions'),
+				('history', 'Historic Revisions'),
+				('manage_options', 'Management Options'),
+				('forms_images', 'Form & Image Objects'),
+
+			]" prefix=section>
+				<dtml-if "report['object'].get(section_key)">
+					<a class="tag" href="#object_<dtml-var section_key>"><dtml-var section_item></a>
+				</dtml-if>
+			</dtml-in>
+		</div>
+		<div class="buttons">
+			<a class="toggle_control" href="#" onclick="return showToggleViews(this);">
+				<span class="button">show all</span>
+			</a>
+			<a class="toggle_control" href="#" onclick="return hideToggleViews(this);">
+				<span class="button">hide all</span>
+			</a>
+		</div>
+	</section>
+
+	<dtml-if "report['object'].get('info')">
+	<section id="object_info">
+		<header>
+			<h3>Object Info</h3>
+		</header>
+		<div class="kv_table">
+			<table>
+				<dtml-let record="dict(report['object']['info'])">
+				<dtml-in "[
+					('name', 'object.__name__'),
+					('class', 'object.__class__'),
+					('module', 'object.__module__'),
+					('file', 'object.__file__'),
+					('doc', 'object.__doc__'),
+					('type_name', 'type(object).__name__'),
+					('type', 'type(object)'),
+					('repr', 'repr(object)'),
+				]" prefix=info>
+				<dtml-if "info_key in record">
+				<tbody>
+					<tr>
+						<th scope="row"><div><dtml-var info_item></div></td>
+						<td><div><dtml-var "record[info_key]"></div></td>
+					</tr>
+				</tbody>
+				</dtml-if>
+				</dtml-in>
+				</dtml-let>
+			</table>
+		</div>
+	</section>
+	</dtml-if>
+
+	<dtml-if "report['object'].get('callables')">
+	<section id="object_callables" class="toggle_view">
+		<header class="toggle_contols">
+			<h3>Callables</h3>
+			<a class="toggle_control" href="#">
+				<span class="button toggle_control_show" onclick="return showToggleView(this);">show</span>
+				<span class="button toggle_control_hide" onclick="return hideToggleView(this);">hide</span>
+			</a>
+		</header>
+		<!-- TODO: #object.callables - add switch to toggle display of docstring -->
+		<div class="row_table">
+			<table>
+				<thead>
+					<tr>
+						<th scope="col" class="number"><div class="number">#</div></th>
+						<th scope="col"><div class="key">Name</div></th>
+						<th scope="col"><div>Arguments</div></th>
+						<th scope="col"><div>Result</div></th>
+					</tr>
+				</thead>
+				<dtml-in "report['object']['callables']" prefix=callable>
+				<tbody>
+					<tr>
+						<th scope="row" rowspan="2"><div class="number minor"><dtml-var callable_number></div></td>
+						<td><div class="key"><dtml-var "callable_item['name']"></div></td>  <!-- TODO: link name to object scanner -->
+						<td>
+							<dtml-if "callable_item['args'] is not None"><div><dtml-var "callable_item['args']"></div>
+							<dtml-else><div class="minor"><em>unknown</em></div></dtml-if>
+						</td>
+						<td>
+							<dtml-if "callable_item['returns'] is not None"><div><dtml-var "callable_item['returns']"></div>
+							<dtml-else><div class="minor"><em>unknown</em></div></dtml-if>
+						</td>
+					</tr>
+					<dtml-if "callable_item['doc_string']">
+					<tr class="docstring">
+						<td colspan="4"><div class="code"><dtml-var "callable_item['doc_string']"></div></td>
+					</tr>
+					</dtml-if>
+				</tbody>
+				</dtml-in>
+			</table>
+		</div>
+	</section>
+	</dtml-if>
+
+	<dtml-if "report['object'].get('attributes')">
+	<section id="object_attributes" class="toggle_view">
+		<header class="toggle_contols">
+			<h3>Attributes</h3>
+			<a class="toggle_control" href="#">
+				<span class="button toggle_control_show" onclick="return showToggleView(this);">show</span>
+				<span class="button toggle_control_hide" onclick="return hideToggleView(this);">hide</span>
+			</a>
+		</header>
+		<div class="row_table">
+			<table>
+				<thead class="vertical">
+					<tr>
+						<th scope="col" class="number"><div class="number">#</div></th>
+						<th scope="col"><div class="key">Name</div></th>
+						<th scope="col"><div>Source</div></th>
+						<th scope="col"><div>Type</div></th>
+						<th scope="col"><div>Value</div></th>
+					</tr>
+				</thead>
+				<dtml-in "report['object']['attributes']" prefix=attribute>
+				<tbody>
+					<tr>
+						<th scope="row"><div class="number minor"><dtml-var attribute_number></div></td>
+						<td><div class="key"><a href="<dtml-var "report['url_prefix']">?path=<dtml-var "report['object']['path']">/<dtml-var "attribute_item['name']">"><dtml-var "attribute_item['name']"></a></div></td>
+						<td>
+							<dtml-if "attribute_item.get('instance_attribute', None)"><div><span>local</span></div></dtml-if>
+							<dtml-if "not attribute_item.get('instance_attribute', None)"><div><span>inherited</span></div></dtml-if>
+						</td>
+						<td><div class="nowrap"><dtml-var "attribute_item['type']"></div></td>
+						<td><div><dtml-var "attribute_item['value']"></div></td>
+					</tr>
+				</tbody>
+				</dtml-in>
+			</table>
+		</div>
+	</section>
+	</dtml-if>
+
+	<dtml-if "report['object'].get('sequence_items')">
+	<section id="object_sequence_items" class="toggle_view">
+		<header class="toggle_contols">
+			<h3>Sequence Items</h3>
+			<a class="toggle_control" href="#">
+				<span class="button toggle_control_show" onclick="return showToggleView(this);">show</span>
+				<span class="button toggle_control_hide" onclick="return hideToggleView(this);">hide</span>
+			</a>
+		</header>
+		<div class="row_table">
+			<table>
+				<thead>
+					<tr>
+						<th scope="col" class="number"><div class="number">#</div></th>
+						<th scope="col"><div>Value</div></th>
+					</tr>
+				</thead>
+				<dtml-in "report['object']['sequence_items']" prefix=sitem>
+				<tbody>
+					<tr>
+						<th scope="row"><div class="number minor"><dtml-var sitem_number></div></td>
+						<td><div><dtml-var sitem_item></div></td>
+					</tr>
+				</tbody>
+				</dtml-in>
+			</table>
+		</div>
+	</section>
+	</dtml-if>
+
+	<dtml-if "report['object'].get('mapping_items')">
+	<section id="object_mapping_items" class="toggle_view">
+		<header class="toggle_contols">
+			<h3>Mapping Items</h3>
+			<a class="toggle_control" href="#">
+				<span class="button toggle_control_show" onclick="return showToggleView(this);">show</span>
+				<span class="button toggle_control_hide" onclick="return hideToggleView(this);">hide</span>
+			</a>
+		</header>
+		<div class="row_table">
+			<table>
+				<thead>
+					<tr>
+						<th scope="col" class="number"><div class="number">#</div></th>
+						<th scope="col"><div class="key">Name</div></th>
+						<th scope="col"><div>Value</div></th>
+					</tr>
+				</thead>
+				<dtml-in "report['object']['mapping_items']" prefix=mapping>
+				<tbody>
+					<tr>
+						<th scope="row"><div class="number minor"><dtml-var mapping_number></div></td>
+						<td><div class="key"><dtml-var mapping_key></div></td>
+						<td><div><dtml-var mapping_item></div></td>
+					</tr>
+				</tbody>
+				</dtml-in>
+			</table>
+		</div>
+	</section>
+	</dtml-if>
+
+	<dtml-if "report['object'].get('ofs_info')">
+	<section id="object_ofs_info">
+		<header>
+			<h3>OFS Object Info</h3>
+		</header>
+		<div class="kv_table">
+			<table>
+				<tbody>
+					<dtml-let record="dict(report['object']['ofs_info'])">
+					<dtml-in "[
+						('id', 'object.id'),
+						('id_func', 'object.id()'),
+						('getId', 'object.getId()'),
+						('title', 'object.title'),
+						('title_and_id', 'object.title_and_id()'),
+						('title_or_id', 'object.title_or_id()'),
+						('meta_type', 'object.meta_type'),
+						('icon', 'object.icon'),
+						('om_icons', 'object.om_icons'),
+						('zmi_icon', 'object.zmi_icon'),
+						('absolute_url', 'object.absolute_url()'),
+					]" prefix=ofs_info>
+					<dtml-if "ofs_info_key in record">
+					<tr>
+						<th scope="row"><div><dtml-var ofs_info_item></div></td>
+						<td><div><dtml-var "record[ofs_info_key]"></div></td>
+					</tr>
+					</dtml-if>
+					</dtml-in>
+					</dtml-let>
+				</tbody>
+			</table>
+		</div>
+	</section>
+	</dtml-if>
+
+	<dtml-if "report['object'].get('sub_objects')">
+	<section id="object_sub_objects" class="toggle_view show_toggle_view">
+		<header class="toggle_contols">
+			<h3>Folder Contents</h3>
+			<a class="toggle_control" href="#">
+				<span class="button toggle_control_show" onclick="return showToggleView(this);">show</span>
+				<span class="button toggle_control_hide" onclick="return hideToggleView(this);">hide</span>
+			</a>
+		</header>
+		<div class="row_table">
+			<table>
+				<thead>
+					<tr>
+						<th scope="col" class="number"><div class="number">#</div></th>
+						<th scope="col"><div>Id</div></th>
+						<th scope="col"><div>Title</div></th>
+						<th scope="col"><div>Lock</div></th>
+						<th scope="col"><div>Icon</div></th>
+						<th scope="col"><div>Meta Type</div></th>
+						<th scope="col"><div class="number">Size</div></th>
+						<th scope="col"><div class="number">Modified</div></th>
+					</tr>
+				</thead>
+				<dtml-in "report['object']['sub_objects']" prefix=sub_object mapping>
+				<tbody>
+					<tr>
+						<th scope="row"><div class="number minor"><dtml-var sub_object_number></div></td>
+						<td><div><a href="<dtml-var "report['url_prefix']">?path=<dtml-var "report['object']['path']">/<dtml-var "sub_object_item['id']">"><dtml-var "sub_object_item['id']"></a></div></td>
+						<td><div><dtml-var "sub_object_item['title']"></div></td>
+						<td><div>
+							<dtml-if "sub_object_item['lock']"><div class="state_true"><span>locked</span></div></dtml-if>
+						</div></td>
+						<td><div>
+							<dtml-var "sub_object_item['zmi_icon_formatted']">
+							<dtml-var "sub_object_item['om_icons_formatted']">
+							<dtml-var "sub_object_item['icon_formatted']">
+						</div></td>
+						<td><div><dtml-var "sub_object_item['meta_type']"></div></td>
+						<td><div class="number split">
+							<span><dtml-var "sub_object_item['size_formatted']"></span>
+							<span><dtml-var "sub_object_item['size']"></span>
+						</div></td>
+						<td><div class="number"><dtml-var "sub_object_item['modified']"></div></td>
+					</tr>
+				</tbody>
+				</dtml-in>
+			</table>
+		</div>
+	</section>
+	</dtml-if>
+
+	<dtml-if "report['object'].get('properties')">
+	<section id="object_properties" class="toggle_view">
+		<header class="toggle_contols">
+			<h3>Properties</h3>
+			<a class="toggle_control" href="#">
+				<span class="button toggle_control_show" onclick="return showToggleView(this);">show</span>
+				<span class="button toggle_control_hide" onclick="return hideToggleView(this);">hide</span>
+			</a>
+		</header>
+		<div class="row_table">
+			<table>
+				<thead>
+					<tr>
+						<th scope="col" class="number"><div class="number">#</div></th>
+						<th scope="col"><div>Id</div></th>
+						<th scope="col"><div>Title</div></th>
+						<th scope="col"><div>Type</div></th>
+						<th scope="col"><div>Mode</div></th>
+						<th scope="col"><div>Options</div></th>
+					</tr>
+				</thead>
+				<dtml-in "report['object']['properties']" prefix=property mapping>
+				<tbody>
+					<tr>
+						<th scope="row"><div class="number minor"><dtml-var property_number></div></td>
+						<td><div><dtml-var "property_item['id']"></div></td>
+						<td><div><dtml-var "property_item['title']"></div></td>
+						<td><div><dtml-var "property_item['type']"></div></td>
+						<td><div><dtml-if "property_item['mode']"><dtml-var "property_item['mode']"><dtml-else>&nbsp;</dtml-if></div></td>
+					</tr>
+				</tbody>
+				</dtml-in>
+			</table>
+		</div>
+	</section>
+	</dtml-if>
+
+	<dtml-if "'permissions' in report['object'] and report['object']['permissions']">
+	<section id="object_permissions" class="toggle_view">
+		<header class="toggle_contols">
+			<h3>Permissions</h3>
+			<a class="toggle_control" href="#">
+				<span class="button toggle_control_show" onclick="return showToggleView(this);">show</span>
+				<span class="button toggle_control_hide" onclick="return hideToggleView(this);">hide</span>
+			</a>
+		</header>
+		<div class="row_table">
+			<table>
+				<thead>
+					<tr>
+						<th scope="col" class="number"><div class="number">#</div></th>
+						<th scope="col"><div>Permission</div></th>
+						<th scope="col"><div>Acquired</div></th>
+						<dtml-in "report['object']['permissions']['valid_roles']" prefix=role>
+						<th scope="col"><div><dtml-var role_item></div></th>
+						</dtml-in>
+					</tr>
+				</thead>
+				<dtml-in "report['object']['permissions']['permissions']" prefix=permission mapping>
+				<tbody>
+					<tr>
+						<th scope="row"><div class="number minor"><dtml-var permission_number></div></td>
+						<td><div><dtml-var "permission_item['name']"></div></td>
+						<td>
+							<dtml-if "permission_item['acquired']"><div class="state_true"><span>acquired</span></div>
+							<dtml-else><div class="state_false"><span>local</span></div>
+						</dtml-if>
+						</td>
+						<dtml-in "report['object']['permissions']['valid_roles']" prefix=role>
+						<td>
+							<dtml-if "permission_item['acquired']">
+							<dtml-if "role_item in permission_item['roles']"><div class="state_true_minor"><span>allow (acq.)</span></div></dtml-if>
+							<dtml-if "role_item not in permission_item['roles']"><div class="state_false_minor"><span>deny (acq.)</span></div></dtml-if>
+							<dtml-else>
+							<dtml-if "role_item in permission_item['roles']"><div class="state_true"><span>allow</span></div></dtml-if>
+							<dtml-if "role_item not in permission_item['roles']"><div class="state_false"><span>deny</span></div></dtml-if>
+							</dtml-if>
+						</td>
+						</dtml-in>
+					</tr>
+				</tbody>
+				</dtml-in>
+			</table>
+		</div>
+	</section>
+	</dtml-if>
+
+	<dtml-if "'roles' in report['object'] and report['object']['roles']">
+	<section id="object_roles" class="toggle_view">
+		<header class="toggle_contols">
+			<h3>Roles</h3>
+			<a class="toggle_control" href="#">
+				<span class="button toggle_control_show" onclick="return showToggleView(this);">show</span>
+				<span class="button toggle_control_hide" onclick="return hideToggleView(this);">hide</span>
+			</a>
+		</header>
+		<div class="row_table">
+			<table>
+				<thead class="vertical">
+					<tr>
+						<th scope="col" class="number"><div class="number">#</div></th>
+						<th scope="col"><div>Role</div></th>
+						<dtml-in "report['object']['roles'][0]['permissions']" prefix=permission>
+						<th scope="col"><div class="vertical"><dtml-var permission_key></div></th>
+						</dtml-in>
+					</tr>
+				</thead>
+				<dtml-in "report['object']['roles']" prefix=role>
+				<tbody>
+					<tr>
+						<th scope="row"><div class="number minor"><dtml-var role_number></div></td>
+						<td><div><dtml-var "role_item['role']"></div></td>
+						<dtml-in "role_item['permissions']" prefix=permission>
+						<td>
+							<dtml-if "permission_item == 'allow'"><div class="state_true"><span>allow</span></div></dtml-if>
+							<dtml-if "permission_item == 'allow_acq'"><div class="state_true_minor"><span>allow (acq.)</span></div></dtml-if>
+							<dtml-if "permission_item == 'deny'"><div class="state_false"><span>deny</span></div></dtml-if>
+							<dtml-if "permission_item == 'deny_acq'"><div class="state_false_minor"><span>deny (acq.)</span></div></dtml-if>
+						</td>
+						</dtml-in>
+					</tr>
+				</tbody>
+				</dtml-in>
+			</table>
+		</div>
+	</section>
+	</dtml-if>
+
+	<dtml-if "report['object'].get('ownership')">
+	<section id="object_ownership" class="toggle_view">
+		<header class="toggle_contols">
+			<h3>Ownership</h3>
+			<a class="toggle_control" href="#">
+				<span class="button toggle_control_show" onclick="return showToggleView(this);">show</span>
+				<span class="button toggle_control_hide" onclick="return hideToggleView(this);">hide</span>
+			</a>
+		</header>
+		<div class="row_table">
+			<table>
+				<thead>
+					<tr>
+						<th scope="col" class="number"><div class="number">#</div></th>
+						<th scope="col"><div class="key">Key</div></th>
+						<th scope="col"><div>Value</div></th>
+					</tr>
+				</thead>
+				<dtml-in "report['object']['ownership']" prefix=ownership>
+				<tbody>
+					<tr>
+						<th scope="row"><div class="number minor"><dtml-var ownership_number></div></td>
+						<td><div class="key"><dtml-var ownership_key></div></td>
+						<td><div><dtml-var ownership_item></div></td>
+					</tr>
+				</tbody>
+				</dtml-in>
+			</table>
+		</div>
+	</section>
+	</dtml-if>
+
+	<dtml-if "report['object'].get('undoable')">
+	<section id="object_undoable" class="toggle_view">
+		<header class="toggle_contols">
+			<h3>Undoable Transactions</h3>
+			<a class="toggle_control" href="#">
+				<span class="button toggle_control_show" onclick="return showToggleView(this);">show</span>
+				<span class="button toggle_control_hide" onclick="return hideToggleView(this);">hide</span>
+			</a>
+		</header>
+		<div class="row_table">
+			<table>
+				<thead>
+					<tr>
+						<th scope="col" class="number"><div class="number">#</div></th>
+						<th scope="col"><div class="key">Date/Time</div></th>
+						<th scope="col"><div>Id</div></th>
+						<th scope="col"><div>Description</div></th>
+						<th scope="col"><div>User Name</div></th>
+						<th scope="col"><div class="number">Size</div></th>
+					</tr>
+				</thead>
+				<dtml-in "report['object']['undoable']" prefix=transaction>
+				<tbody>
+					<tr>
+						<th scope="row"><div class="number minor"><dtml-var transaction_number></div></td>
+						<td><div class="key"><dtml-var "transaction_item['datetime']"></div></td>
+						<td><div><dtml-var "transaction_item['id']"></div></td>
+						<td><div><dtml-var "transaction_item['description']"></div></td>
+						<td><div><dtml-var "transaction_item['username']"></div></td>
+						<td><div class="number split">
+							<span><dtml-var "transaction_item['size_formatted']"></span>
+							<span><dtml-var "transaction_item['size']"></span>
+						</div></td>
+					</tr>
+				</tbody>
+				</dtml-in>
+			</table>
+		</div>
+	</section>
+	</dtml-if>
+
+	<dtml-if "report['object'].get('history')">
+	<section id="object_history" class="toggle_view">
+		<!-- TODO: #object_history - correct columns -->
+		<header>
+			<h3>Historic Revisions</h3>
+			<a class="toggle_control" href="#">
+				<span class="button toggle_control_show" onclick="return showToggleView(this);">show</span>
+				<span class="button toggle_control_hide" onclick="return hideToggleView(this);">hide</span>
+			</a>
+		</header>
+		<div class="row_table">
+			<table>
+				<thead>
+					<tr>
+						<th scope="col" class="number"><div class="number">#</div></th>
+						<th scope="col"><div class="key">Date/Time</div></th>
+						<th scope="col"><div>Serial</div></th>
+						<th scope="col"><div>revision</div></th>
+						<th scope="col"><div>f_revision</div></th>
+					</tr>
+				</thead>
+				<dtml-in "report['object']['history']" prefix=revision>
+				<tbody>
+					<tr>
+						<th scope="row"><div class="number minor"><dtml-var revision_number></div></td>
+						<td><div class="key"><dtml-var "revision_item['datetime']"></div></td>
+						<td><div><dtml-var "revision_item['serial']"></div></td>
+						<td><div><dtml-var "revision_item['revision']"></div></td>
+						<td><div><dtml-var "revision_item['f_revision']"></div></td>
+					</tr>
+				</tbody>
+				</dtml-in>
+			</table>
+		</div>
+	</section>
+	</dtml-if>
+
+	<dtml-if "report['object'].get('manage_options')">
+	<section id="object_manage_options" class="toggle_view">
+		<header class="toggle_contols">
+			<h3>Management Options</h3>
+			<a class="toggle_control" href="#">
+				<span class="button toggle_control_show" onclick="return showToggleView(this);">show</span>
+				<span class="button toggle_control_hide" onclick="return hideToggleView(this);">hide</span>
+			</a>
+		</header>
+		<div class="row_table">
+			<table>
+				<thead>
+					<tr>
+						<th scope="col" class="number"><div class="number">#</div></th>
+						<th scope="col"><div>Label</div></th>
+						<th scope="col"><div>Action</div></th>
+					</tr>
+				</thead>
+				<dtml-in "report['object']['manage_options']" prefix=manage_option mapping>
+				<tbody>
+					<tr>
+						<th scope="row"><div class="number minor"><dtml-var "manage_option_item['number']"></div></td>
+						<td><div><dtml-var "manage_option_item['label']"></div></td>
+						<td><div><a href="<dtml-var "report['url_prefix']">?path=<dtml-var "report['object']['path']">/<dtml-var "manage_option_item['action']">"><dtml-var "manage_option_item['action']"></a></div></td>
+					</tr>
+				</tbody>
+				</dtml-in>
+			</table>
+		</div>
+	</section>
+	</dtml-if>
+
+
+	<dtml-if "report['object'].get('forms_images')">
+	<section id="object_forms_images" class="toggle_view">
+		<header class="toggle_contols">
+			<h3>Form &amp; Image Objects</h3>
+			<a class="toggle_control" href="#">
+				<span class="button toggle_control_show" onclick="return showToggleView(this);">show</span>
+				<span class="button toggle_control_hide" onclick="return hideToggleView(this);">hide</span>
+			</a>
+		</header>
+		<div class="row_table">
+			<table>
+				<thead>
+					<tr>
+						<th scope="col" class="number"><div class="number">#</div></th>
+						<th scope="col"><div class="key">Name</div></th>
+						<th scope="col"><div>Type</div></th>
+						<th scope="col"><div>Value</div></th>
+					</tr>
+				</thead>
+				<dtml-in "report['object']['forms_images']" prefix=item>
+				<tbody>
+					<tr>
+						<th scope="row"><div class="number minor"><dtml-var item_number></div></td>
+						<td><div class="key"><a href="<dtml-var "report['url_prefix']">?path=<dtml-var "report['object']['path']">/<dtml-var "item_item['name']">"><dtml-var "item_item['name']"></a></div></td>
+						<td><div><dtml-var "item_item['type']"></div></td>
+						<td><div><dtml-var "item_item['value']"></div></td>
+					</tr>
+				</tbody>
+				</dtml-in>
+			</table>
+		</div>
+	</section>
+	</dtml-if>
+
+<dtml-else>
+
+	<section id="object_retrieval_error">
+		<header>
+			<h3>Retrieval Error "<dtml-var "report['exception'].key">"</h3>
+		</header>
+		<div class="error-message">
+			<p>
+				The requested object <strong><dtml-var "report['exception'].key"></strong> could not be retrieved.
+				The object either does not exist or can not be retrieved due to technical reasons.
+			</p>
+			<p>
+				You may choose to return to the <a href="<dtml-var "breadcrumbs[-1][0]">">last object found while traversing the path</a>, named <strong><dtml-var "breadcrumbs[-1][1]"></strong>.
+			</p>
+		</div>
+	</section>
+
+</dtml-if>
