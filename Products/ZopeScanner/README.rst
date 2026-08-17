@@ -20,9 +20,7 @@ ZopeScanner circumvents Zope security mechanisms and allows access to protected
 objects as well as to files on the server's file system. Therefore, as a
 general rule:
 
-.. warning::
-
-    **INSTALL THIS PRODUCT ONLY WHEN NEEDED AND REMOVE AFTERWARDS**
+**ONLY INSTALL THIS PRODUCT WHEN NEEDED AND REMOVE AFTERWARDS**
 
 It is intended for use within a development environment for debugging and
 analysis purpose only!
