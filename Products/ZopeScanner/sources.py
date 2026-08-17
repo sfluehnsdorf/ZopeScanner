@@ -1,4 +1,8 @@
-"""ZopeScanner - SourceScanner."""
+"""ZopeScanner - SourceScanner.
+
+Perform scans of source files of the Zope server and Python
+language.
+"""
 
 
 from Products.ZopeScanner.imports_python import abspath
@@ -16,7 +20,6 @@ from Products.ZopeScanner.imports_python import stat
 from Products.ZopeScanner.imports_python import version
 
 from Products.ZopeScanner.imports_zope import DTMLFile
-from Products.ZopeScanner.imports_zope import ImageFile
 
 from Products.ZopeScanner.shared import sort_by_key
 
@@ -30,9 +33,13 @@ ZOPE_HOME = environ.get('ZOPE_HOME')
 
 
 # =============================================================================
-# File Extensions Mapping
+# SourceScanner File Extensions Mapping
 
-# TODO: !!! review extension list (outsource, but extend with zope specifics)
+# TODO: sources.py - revise file identification
+# - create _guess_source_file_type()
+# - use python library if possible
+# - extend with zope related file formats
+
 
 extensions = {
     'bak': ('hex', 'Backup'),
@@ -81,9 +88,15 @@ extensions = {
 
 
 # =============================================================================
+# SourceScanner Root Paths
 
 
 def __get_sources_rootpaths():
+    """Return a list of valid root paths.
+
+    This list is fixed and may not be extended. The Source Browser will refuse
+    any access outside these root paths.
+    """
     result = []
 
     if environ.get('INSTANCE_HOME'):
@@ -133,8 +146,6 @@ for item in rootpaths:
 class SourceScanner:
     """SourceScanner Mix-in Class."""
 
-    image_bg_image = ImageFile('resources/image_bg.png', globals())
-
     scan_sources_form = DTMLFile('resources/sources', globals())
 
     def scan_sources(self, form):
@@ -145,6 +156,7 @@ class SourceScanner:
         processes options and prepares for the actual file reading. See the
         scan_source_file() method below for actual file access.
         """
+        # initialise scanner form parameters
         breadcrumbs = [('scan_sources_form', 'Source File Scanner')]
         form_id = breadcrumbs[0][0]
         url_prefix = '%s/%s' % (self.scanner_url(), form_id)
@@ -154,11 +166,11 @@ class SourceScanner:
             'url_prefix': url_prefix,
         }
 
-        path = form.get('path', '')
-
+        # parameters for directory view
         order_by = form.get('order_by', 'name')
         show_hidden_files = form.get('show_hidden_files', False)
 
+        # parameters for hexdump view
         bytes_per_row = max(8, min(64, int(form.get('bytes_per_row', 16))))
         bytes_per_page = max(1024, min(128 * 1024, int(
             form.get('bytes_per_page', 4 * 1024))))
@@ -177,24 +189,27 @@ class SourceScanner:
         report['link_params'] = link_params
         report.update(link_params)
 
+        # add list of rootpaths without filepaths to report
         filtered_rootpaths = []
         for rootpath in rootpaths:
             filtered_rootpaths.append((
                 rootpath['key'], rootpath['label']))
         report['rootpaths'] = filtered_rootpaths
 
+        # initialise and normalise path
+        path = form.get('path', '')
         path = path != '/' and path or ''
-        if not path:
-            rootpath = rootpaths[0]
-            path = rootpath['key']
-            filepath = rootpath['path']
-            breadcrumbs.append((
-                'scan_sources_form?path=' + path, rootpath['label']))
-        else:
+
+        # we have a path and need to deduce the respective filepath
+        if path:
+
+            # determine rootpath
             step_path = path.split('/')[0]
             rootpath = rootpath_map.get(step_path, None)
             if rootpath is None:
                 raise ValueError('invalid path')
+
+            # generate filepath and breadcrumbs from path
             breadcrumbs.append((
                 'scan_sources_form?path=' + step_path, rootpath['label']))
             filepath = rootpath['path']
@@ -203,6 +218,25 @@ class SourceScanner:
                 filepath = join(filepath, step_name)
                 breadcrumbs.append((
                     'scan_sources_form?path=' + step_path, step_name))
+
+            # ensure that we are still, where we want to be, and not outside of
+            # the designated root directory via ".." in path
+            filepath = normpath(abspath(filepath))
+            if not filepath.startswith(rootpath['path']):
+                raise ValueError('invalid path')
+
+            if realpath(filepath) != normpath(filepath):
+                raise TypeError('refusing to follow symbolic links')
+
+        # we have no path, so start with the first rootpath
+        else:
+            rootpath = rootpaths[0]
+            path = rootpath['key']
+            filepath = rootpath['path']
+            breadcrumbs.append((
+                'scan_sources_form?path=' + path, rootpath['label']))
+
+        # update report
         report['filename'] = path.split('/')[-1]
         report['rootpath_key'] = rootpath['key']
         report['breadcrumbs'] = breadcrumbs
@@ -210,6 +244,9 @@ class SourceScanner:
 
         # directory
         if isdir(filepath):
+
+            # iterate over files in directory and create a list of information
+            # about each file
             files = []
             for subname in listdir(filepath):
                 if subname[0] == '.' and not show_hidden_files:
@@ -217,13 +254,17 @@ class SourceScanner:
                 subpath = join(filepath, subname)
                 subinfo = stat(subpath)
                 subtype = '<em>Unknown</em>'
+
+                # identify type of file
+                # TODO: scan_sources() - replace with new file identification
                 if isdir(subpath):
                     subtype = 'Directory'
                 else:
-                    # TODO: !!! revise -> _guess_source_file_type()
                     extension = splitext(subname)[1].lower()[1:]
                     if extension in extensions:
                         subtype = extensions[extension][1]
+
+                # store file information
                 files.append({
                     'name': subname,
                     'filepath': subpath,
@@ -235,30 +276,33 @@ class SourceScanner:
                     'ctime': format_datetime(ts=subinfo[9]),
                 })
             files = sort_by_key(files, order_by)
+
+            # update report
             report['directory'] = files
 
-        # archive
-        # TODO: scan_sources() - archive view
+        # file archive
+        # TODO: scan_sources() - file archive scan
 
-        # audio
-        # TODO: scan_sources() - audio view
+        # audio file
+        # TODO: scan_sources() - audio file scan
 
-        # image
-        # TODO: scan_sources() - image view
+        # image file
+        # TODO: scan_sources() - image file scan
 
-        # video
-        # TODO: scan_sources() - video view
+        # video file
+        # TODO: scan_sources() - video file scan
 
-        # text
-        # TODO: scan_sources() - text view
+        # source file
+        # TODO: scan_sources() - source file scan
 
-        # source
-        # TODO: scan_sources() - source view
+        # text file
+        # TODO: scan_sources() - text file scan
 
-        # hexdump
+        # hexdump file
         else:
+            # use a rotating buffer to capture bytes from start to end. iterate
+            # until eof to determine file size.
             hexdump = {}
-            filehandle = open(filepath, 'r')
             contents = ''
             content_start = (page_number - 1) * bytes_per_page
             content_end = page_number * bytes_per_page
@@ -266,6 +310,7 @@ class SourceScanner:
             index = 0
             total_size = 0
             try:
+                filehandle = open(filepath, 'r')
                 while 1:
                     character = filehandle.read(1)
                     if not character:
@@ -278,165 +323,15 @@ class SourceScanner:
                         contents = contents + character
                     index = (index + 1) % bytes_per_page
                     total_size = total_size + 1
+                filehandle.close()
             except Exception:  # TODO: review Exception
                 pass
             total_pages = int(ceil(1.0 * total_size / bytes_per_page))
+
+            # update report
             hexdump['contents'] = contents
             hexdump['total_size'] = total_size
             hexdump['total_pages'] = total_pages
-            filehandle.close()
             report['hexdump'] = hexdump
 
         return report
-
-    def get_source_path(self, path):
-        """Return normalized source file path."""
-        pathroot = path.split('/')[0]
-
-        if pathroot == 'instance':
-            basepath = INSTANCE_HOME
-        elif pathroot == 'software':
-            basepath = SOFTWARE_HOME
-        elif pathroot == 'zope':
-            basepath = ZOPE_HOME
-        elif pathroot == 'python':
-            basepath = normpath('%s/lib/python%s' % (prefix, version[:3]))
-            if not exists(basepath):
-                basepath = normpath('%s/Lib' % prefix)
-        else:
-            return None
-
-        filepath = basepath
-        path_parts = path.split('/')
-        if len(path_parts) > 1:
-            filepath = join(filepath, '/'.join(path_parts[1:]))
-
-        filepath = normpath(abspath(filepath))
-        if not filepath.startswith(basepath):
-            filepath = basepath
-
-        return filepath
-
-    def scan_source_file(self, path=''):
-        """Scan Zope source file specified by path."""
-        result = {}
-        filepath = self.get_source_path(path)
-
-        if not filepath:
-            result['message'] = 'Invalid root path!'
-
-        elif realpath(filepath) != normpath(filepath):
-            result['message'] = 'Refusing to follow symbolic links!'
-
-        elif isdir(filepath):
-            result['filetype'] = 'dir'
-            contents = []
-            for subfilename in listdir(filepath):
-                subfilepath = join(filepath, subfilename)
-                subfileinfo = stat(subfilepath)
-                if isdir(subfilepath):
-                    subfiletype = 'Directory'
-                else:
-                    extension = splitext(subfilepath)[1].lower()[1:]
-                    if extension in extensions:
-                        subfiletype = extensions[extension][1]
-                    else:
-                        subfiletype = '<em>Unknown</em>'
-                contents.append({
-                    'filename': subfilename,
-                    'filetype': subfiletype,
-                    'size': subfileinfo[6],
-                    'atime': format_datetime(ts=subfileinfo[7]),
-                    'mtime': format_datetime(ts=subfileinfo[8]),
-                    'ctime': format_datetime(ts=subfileinfo[9]),
-                    })
-            result['contents'] = contents
-
-        elif exists(filepath):
-            extension = splitext(filepath)[1].lower()[1:]
-            if extension in extensions:
-                filetype = extensions[extension][0]
-            else:
-                filetype = 'hex'
-            if filetype == 'txt':
-                filehandle = open(filepath, 'r')
-                result['contents'] = filehandle.read()
-                filehandle.close()
-            elif filetype == 'img':
-                filehandle = open(filepath, 'rb')
-                result['contents'] = filehandle.read()
-                filehandle.close()
-            else:
-                filehandle = open(filepath, 'rb')
-                result['contents'] = filehandle.read()
-                filehandle.close()
-            result['filetype'] = filetype
-
-        else:
-            result['message'] = 'File not found!'
-
-        return result
-
-    def retrieve_source_file(self, path):
-        """Retrieve specified source file."""
-        filepath = self.get_source_path(path)
-        if filepath and realpath(filepath) == filepath:
-            extension = splitext(filepath)[1].lower()[1:]
-            if extension in extensions and extensions[extension][0] ==\
-                    'img':
-                filehandle = open(filepath, 'rb')
-                result = filehandle.read()
-                filehandle.close()
-                return result
-
-
-# TODO: !!! review old code
-
-'''
-    def formatpath(filename):
-        parts = []
-        while split(filename)[0]:
-            parts.append(split(filename)[1])
-            filename = split(filename)[0]
-        parts.append(filename)
-        parts.reverse()
-        path = '/'.join(parts)
-        if path.endswith('pyc'):
-            return path[:-1]
-        return path
-
-    if filename.startswith(INSTANCE_HOME):
-        filename = '<a href="scan_source_form?path=%s">%s</a>' % (
-            'instance/' + formatpath(
-                filename[len(INSTANCE_HOME) + 1:]),
-            filename
-        )
-    elif filename.startswith(SOFTWARE_HOME):
-        filename = '<a href="scan_source_form?path=%s">%s</a>' % (
-            'software/' + formatpath(
-                filename[len(SOFTWARE_HOME) + 1:]),
-            filename
-        )
-    elif filename.startswith(ZOPE_HOME):
-        filename = '<a href="scan_source_form?path=%s">%s</a>' % (
-            'zope/' + formatpath(filename[len(ZOPE_HOME) + 1:]),
-            filename
-        )
-    else:
-        major, minor = version.split('.')[:2]
-        pythonhome = normpath('%s/lib/python%s.%s' % (
-            prefix, major, minor
-        ))
-        if not exists(pythonhome):
-            pythonhome = normpath('%s/Lib' % prefix)
-        if filename.startswith(pythonhome):
-            filename = (
-                '<a href="scan_source_form?path=%s">%s</a>' % (
-                    'python/' + formatpath(
-                        filename[len(pythonhome) + 1:]),
-                    filename
-                )
-            )
-
-    format_value(modules.get(name, None), breadcrumbs[0], '', name),
-'''

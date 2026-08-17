@@ -15,6 +15,10 @@ SOFTWARE_HOME = environ.get('SOFTWARE_HOME')
 ZOPE_HOME = environ.get('ZOPE_HOME')
 
 
+# =============================================================================
+# ModuleScanner Mix-in Class
+
+
 class ModuleScanner:
     """ModuleScanner Mix-in Class."""
 
@@ -37,9 +41,10 @@ class ModuleScanner:
 
         path = path != '/' and path or ''
 
-        module_records = {}
-        module_packages = {}
-        module_instances = {}
+        # identify all modules with their respective packages
+        module_records = {}  # information about each module
+        module_packages = {}  # modules' top most parents
+        module_instances = {}  # required for path traversal
         module_names = list(modules.keys())
         module_names.sort()
         for name in list(module_names):
@@ -71,6 +76,8 @@ class ModuleScanner:
                 'source_filename': source_filename,
             }
             module_instances[name] = modules.get(name)
+
+        # update report
         report['modules'] = module_packages.items()
 
         if '/' in path:
@@ -85,17 +92,27 @@ class ModuleScanner:
         elif path:
             index = module_names.index(path)
             module = modules.get(path)
+
+            # update report with module record
             module_record = module_records[path]
-            report['module'] = {
+            report['module'] = {}
+            report['module'].update(module_record)
+
+            # update report with navigation hints
+            report['module'].update({
                 'prev': module_names[(index - 1) % len(module_names)],
                 'next': module_names[(index + 1) % len(module_names)],
                 'module': module,
                 'docstring': module and module.__doc__,
-            }
-            report['module'].update(module_record)
+            })
+
+            # update breadcrumbs
             breadcrumbs.append((
                 '%s?path=%s' % (form_id, path), path))
+
+            # update report with object scan
             report.update(self.scan_object(
                 breadcrumbs, form_id, module_instances, path,
                 url_prefix))
+
         return report

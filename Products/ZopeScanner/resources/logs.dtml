@@ -13,6 +13,10 @@
 <dtml-var breadcrumbs_html>
 <main class="container-fluid">
 
+	<p class="form-help alert alert-info">
+		Log files protocol various activities or state changes. This view allows users to see the latest lines added to Zope's log files. Automatic refresh allows the display to continously update.
+	</p>
+
 	<dtml-if "report.get('log_files')">
 
 		<form action="scan_logfiles_form#tfoot" method="post" class="controls">
@@ -60,7 +64,7 @@
 			</div>
 		</form>
 
-		<div class="row_table" id="logfile_table">
+		<div class="indexed_table" id="logfile_table">
 			<table>
 				<thead>
 					<tr>
@@ -92,99 +96,7 @@
 		</p>
 	</dtml-if>
 
-	<script>
-
-		function create_logfile_table(result) {
-				console.log(4, 'create_logfile_table');
-			const columns_len = result.columns_len;
-			const lines = result.lines;
-			let html = '';
-			for (var line_index = 0; line_index < lines.length; line_index++) {
-				html += '<tbody>';
-				html += '<tr>';
-				html += '<th scope="row"><div class="number">' + (line_index + 1) + '</div></td>';
-				for (var column_index = 0; column_index < columns_len; column_index++) {
-					html += '<td><div class="code">' + (lines[line_index][column_index].replace(/\n/g, '<br>')) + '</div></td>';
-				}
-				html += '</tr>';
-				html += '</tbody>';
-			}
-			const table = document.getElementById('logfile_table');
-			table.querySelectorAll('tbody').forEach(element => element.remove());
-			table.querySelector('thead').insertAdjacentHTML('afterend', html);
-		}
-
-		function update_logfile_table() {
-				console.log(3, 'update_logfile_table');
-			const path_select = document.getElementById('path');
-			const path_select_val = path_select.options[path_select.selectedIndex].value;
-			const max_lines_select = document.getElementById('max_lines');
-			const max_lines_select_val = max_lines_select.options[max_lines_select.selectedIndex].value;
-			const form_data = {
-				'path': path_select_val,
-				'max_lines': max_lines_select_val,
-				'timestamp': Date.now(),
-			};
-			const form_params = new URLSearchParams(form_data);
-			fetch('<dtml-var scanner_url>/get_logfile_lines', {
-				method: 'POST',
-				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-				body: form_params.toString(),
-			})
-				.then(response => {
-					if (!response.ok) {
-						throw new Error(`HTTP error! Status: ${response.status}`);
-					}
-					return response.json(); 
-				})
-				.then(data => {
-					create_logfile_table(data);
-				})
-				.catch(error => function () {
-					console.error('Error:', error);
-				});
-		}
-
-		let auto_refresh_interval = null;
-
-		function change_auto_refresh() {
-			if (document.getElementById('auto_refresh_active').checked) {
-				const delay_select = document.getElementById('auto_refresh_delay');
-				const delay = parseInt(delay_select.options[delay_select.selectedIndex].value);
-				if (auto_refresh_interval) {
-					console.log(1, 'clear', auto_refresh_interval);
-					clearInterval(auto_refresh_interval);
-				}
-				auto_refresh_interval = setInterval(update_logfile_table, 1000 * delay);
-				console.log(1, 'new', auto_refresh_interval);
-			} else {
-				if (auto_refresh_interval) {
-					console.log(2, 'clear', auto_refresh_interval);
-					clearInterval(auto_refresh_interval);
-					auto_refresh_interval = null;
-				}
-			}
-		}
-
-		function change_log_file() {
-			const path_select = document.getElementById('path');
-			const path_select_val = path_select.options[path_select.selectedIndex].value;
-			const max_lines_select = document.getElementById('max_lines');
-			const max_lines_select_val = max_lines_select.options[max_lines_select.selectedIndex].value;
-			const auto_refresh_active = document.getElementById('auto_refresh_active').checked ? 'active' : '';
-			const auto_refresh_delay_select = document.getElementById('auto_refresh_delay');
-			const auto_refresh_delay = parseInt(auto_refresh_delay_select.options[auto_refresh_delay_select.selectedIndex].value);
-			const url = new URL(window.location.href);
-			url.search = ''; 
-			url.searchParams.set('path', path_select_val);
-			url.searchParams.set('max_lines', max_lines_select_val);
-			url.searchParams.set('auto_refresh_active', auto_refresh_active);
-			url.searchParams.set('auto_refresh_delay', auto_refresh_delay);
-			window.location.href = url.href;
-		}
-
-	</script>
-
+	<p id="top"><a href="#breadcrumbs"><i class="icon icon_up"></i><span>Back to top of page</span></a></p>
 </main>
 <dtml-var scanner_css>
 <dtml-var scanner_js>

@@ -1,84 +1,184 @@
 <script type="text/javascript">
 
-	function getParentWithClass(element, selector) {
-    	do {
-        	element = element.parentNode;
-        	if (element.classList.contains(selector)) {
-        	    return element;
-    	    }
-	    } while (element.parentNode && element.classList);
-	    console.error('could not find', selector);
-	}
+	// helper methods
 
-	function hideToggleView(element) {
-		const container = getParentWithClass(element, 'toggle_view');
-		if (container) {
-			container.classList.remove('show_toggle_view');
+		// getParentWithClass(element, selector) - iterate through parents of element and return first matching selector
+		function getParentWithClass(element, selector) {
+			do {
+				element = element.parentNode;
+				if (element.classList.contains(selector)) {
+					return element;
+				}
+			} while (element.parentNode && element.classList);
+			console.error('could not find', selector);
 		}
-		return false;
-	}
 
-	function showToggleView(element) {
-		const container = getParentWithClass(element, 'toggle_view')
-		if (container) {
-			container.classList.add('show_toggle_view');
+	// toggle views
+
+		// hideToggleView(element) - hide specified element toggle views
+		function hideToggleView(element) {
+			const container = getParentWithClass(element, 'toggle_view');
+			if (container) {
+				container.classList.remove('show_toggle_view');
+			}
+			return false;
 		}
-		return false;
-	}
 
-	function hideToggleViews() {
-		const elements = document.getElementsByClassName("toggle_view");
-		for (const element of elements) {
-			element.classList.remove('show_toggle_view');
+		// showToggleView(element) - show specified element toggle views
+		function showToggleView(element) {
+			const container = getParentWithClass(element, 'toggle_view')
+			if (container) {
+				container.classList.add('show_toggle_view');
+			}
+			return false;
 		}
-		return false;
-	}
 
-	function showToggleViews() {
-		const elements = document.getElementsByClassName("toggle_view");
-		for (const element of elements) {
-			element.classList.add('show_toggle_view');
+		// hideToggleViews() - hide all toggle views
+		function hideToggleViews() {
+			const elements = document.getElementsByClassName("toggle_view");
+			for (const element of elements) {
+				element.classList.remove('show_toggle_view');
+			}
+			return false;
 		}
-		return false;
-	}
 
-	function gotoFirstPage() {
-		const element = document.getElementById("page_number");
-		element.value = element.min;
-		document.getElementById('control_update_button').click();
-		return false;
-	}
-
-	function gotoPreviousPage() {
-		const element = document.getElementById("page_number");
-		let value = parseInt(element.value);
-		if (value - 1 >= element.min) {
-			element.value = value - 1;
+		// showToggleViews() - show all toggle views
+		function showToggleViews() {
+			const elements = document.getElementsByClassName("toggle_view");
+			for (const element of elements) {
+				element.classList.add('show_toggle_view');
+			}
+			return false;
 		}
-		document.getElementById('control_update_button').click();
-		return false;
-	}
 
-	function gotoNextPage() {
-		const element = document.getElementById("page_number");
-		let value = parseInt(element.value);
-		if (value + 1 <= element.max) {
-			element.value = value + 1;
+	// pagination
+
+		// gotoFirstPage() - set page number to minimum
+		function gotoFirstPage() {
+			const element = document.getElementById("page_number");
+			element.value = element.min;
+			document.getElementById('control_update_button').click();
+			return false;
 		}
-		document.getElementById('control_update_button').click();
-		return false;
-	}
 
-	function gotoLastPage() {
-		const element = document.getElementById("page_number");
-		element.value = element.max;
-		document.getElementById('control_update_button').click();
-		return false;
-	}
+		// gotoPreviousPage() - decrement page number
+		function gotoPreviousPage() {
+			const element = document.getElementById("page_number");
+			let value = parseInt(element.value);
+			if (value - 1 >= element.min) {
+				element.value = value - 1;
+			}
+			document.getElementById('control_update_button').click();
+			return false;
+		}
 
+		// gotoNextPage() - increment page number
+		function gotoNextPage() {
+			const element = document.getElementById("page_number");
+			let value = parseInt(element.value);
+			if (value + 1 <= element.max) {
+				element.value = value + 1;
+			}
+			document.getElementById('control_update_button').click();
+			return false;
+		}
 
+		// gotoLastPage() - set page number to maximum
+		function gotoLastPage() {
+			const element = document.getElementById("page_number");
+			element.value = element.max;
+			document.getElementById('control_update_button').click();
+			return false;
+		}
 
+	// log files
 
+		// create_logfile_table(result) - create html table from logfile data
+		function create_logfile_table(result) {
+			const columns_len = result.columns_len;
+			const lines = result.lines;
+			let html = '';
+			for (var line_index = 0; line_index < lines.length; line_index++) {
+				html += '<tbody>';
+				html += '<tr>';
+				html += '<th scope="row"><div class="number">' + (line_index + 1) + '</div></td>';
+				for (var column_index = 0; column_index < columns_len; column_index++) {
+					html += '<td><div class="code">' + (lines[line_index][column_index].replace(/\n/g, '<br>')) + '</div></td>';
+				}
+				html += '</tr>';
+				html += '</tbody>';
+			}
+			const table = document.getElementById('logfile_table');
+			table.querySelectorAll('tbody').forEach(element => element.remove());
+			table.querySelector('thead').insertAdjacentHTML('afterend', html);
+		}
 
+		// update_logfile_table() - read logfile data from endpoint and update html
+		function update_logfile_table() {
+			const path_select = document.getElementById('path');
+			const path_select_val = path_select.options[path_select.selectedIndex].value;
+			const max_lines_select = document.getElementById('max_lines');
+			const max_lines_select_val = max_lines_select.options[max_lines_select.selectedIndex].value;
+			const form_data = {
+				'path': path_select_val,
+				'max_lines': max_lines_select_val,
+				'timestamp': Date.now(),
+			};
+			const form_params = new URLSearchParams(form_data);
+			fetch('<dtml-var scanner_url>/get_logfile_lines', {
+				method: 'POST',
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+				body: form_params.toString(),
+			})
+				.then(response => {
+					if (!response.ok) {
+						throw new Error(`HTTP error! Status: ${response.status}`);
+					}
+					return response.json(); 
+				})
+				.then(data => {
+					create_logfile_table(data);
+				})
+				.catch(error => function () {
+					console.error('Error:', error);
+				});
+		}
+
+		let auto_refresh_interval = null;
+
+		// change_auto_refresh(result) - reset auto refresh settings and manage interval
+		function change_auto_refresh() {
+			if (document.getElementById('auto_refresh_active').checked) {
+				const delay_select = document.getElementById('auto_refresh_delay');
+				const delay = parseInt(delay_select.options[delay_select.selectedIndex].value);
+				if (auto_refresh_interval) {
+					clearInterval(auto_refresh_interval);
+				}
+				auto_refresh_interval = setInterval(update_logfile_table, 1000 * delay);
+			} else {
+				if (auto_refresh_interval) {
+					clearInterval(auto_refresh_interval);
+					auto_refresh_interval = null;
+				}
+			}
+		}
+
+		// change_auto_refresh(result) - update and load URL to reflect logfile change
+		function change_log_file() {
+			const path_select = document.getElementById('path');
+			const path_select_val = path_select.options[path_select.selectedIndex].value;
+			const max_lines_select = document.getElementById('max_lines');
+			const max_lines_select_val = max_lines_select.options[max_lines_select.selectedIndex].value;
+			const auto_refresh_active = document.getElementById('auto_refresh_active').checked ? 'active' : '';
+			const auto_refresh_delay_select = document.getElementById('auto_refresh_delay');
+			const auto_refresh_delay = parseInt(auto_refresh_delay_select.options[auto_refresh_delay_select.selectedIndex].value);
+			const url = new URL(window.location.href);
+			url.search = ''; 
+			url.searchParams.set('path', path_select_val);
+			url.searchParams.set('max_lines', max_lines_select_val);
+			url.searchParams.set('auto_refresh_active', auto_refresh_active);
+			url.searchParams.set('auto_refresh_delay', auto_refresh_delay);
+			window.location.href = url.href;
+		}
 
 </script>

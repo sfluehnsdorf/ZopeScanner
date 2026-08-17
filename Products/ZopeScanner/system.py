@@ -44,6 +44,7 @@ class SystemScanner:
 
     def scan_system(self, path=''):
         """Scan system."""
+        # initialise scanner form parameters
         breadcrumbs = [('scan_system_form', 'System Scanner')]
         form_id = breadcrumbs[0][0]
         url_prefix = '%s/%s' % (self.scanner_url(), form_id)
@@ -53,6 +54,7 @@ class SystemScanner:
             'url_prefix': url_prefix,
         }
 
+        # update report with specialized scanners' reports
         report.update({
             'host': self.scan_system_host(form_id, path),
             'software': self.scan_system_software(form_id, path),
@@ -66,10 +68,11 @@ class SystemScanner:
             'config_items': self.scan_system_config(form_id, path),
             'environ_items': self.scan_system_environ(form_id, path),
         })
+
         return report
 
     def scan_system_host(self, form_id, path):
-        """Scan system host."""
+        """Scan system host for hardware and OS information."""
         host = {}
         uname_result = uname()
         if uname_result:
@@ -88,11 +91,11 @@ class SystemScanner:
                     distro = freedesktop_os_release()
                     host['distro_name'] = distro.get('NAME', None)
                     host['distro_version'] = distro.get('VERSION', None)
-        # TODO: add support for psutil
+        # TODO: scan_system_host() - add optional support for psutil
         return host
 
     def scan_system_software(self, form_id, path):
-        """Scan system software."""
+        """Scan Python and Zope software."""
         zope_version = getZopeVersion()
         zope_runtime = format_duration(int(
             time() - self.getPhysicalRoot().Control_Panel.process_start))
@@ -122,18 +125,17 @@ class SystemScanner:
             'zope_runtime': zope_runtime,
             'zope_pid': getpid(),
             'zope_thread': get_ident(),
-            'INSTANCE_HOME': INSTANCE_HOME,  # TODO: format as link to source
-            'SOFTWARE_HOME': SOFTWARE_HOME,  # TODO: format as link to source
-            'ZOPE_HOME': ZOPE_HOME,  # TODO: format as link to source
+            'INSTANCE_HOME': INSTANCE_HOME,
+            # TODO: scan_system_software() - format INSTANCE_HOME as link
+            'SOFTWARE_HOME': SOFTWARE_HOME,
+            # TODO: scan_system_software() - format SOFTWARE_HOME as link
+            'ZOPE_HOME': ZOPE_HOME,
+            # TODO: scan_system_software() - format ZOPE_HOME as link
         }
         return software
 
     def scan_system_servers(self, form_id, path, order_by='key'):
-        """Scan servers.
-
-        Perform a scan starting with the list of active servers, traversing
-        along the specified by path.
-        """
+        """Scan servers operated by Zope, such as httpd or ftpd."""
         servers = []
         if socket_map is not None:
             format_type_and_value = self.format_type_and_value
@@ -143,7 +145,7 @@ class SystemScanner:
                 except Exception:  # TODO: review Exception
                     name = ''
                 sclass = format_type_and_value(
-                    value, 'scan_server_form', '', str(key))
+                    value, form_id, path, str(key))
                 try:
                     hostname = '%s' % getattr(value, 'hostname')
                 except Exception:  # TODO: review Exception
@@ -170,8 +172,10 @@ class SystemScanner:
         return servers
 
     def scan_system_databases(self, form_id, path):
-        """Scan system databases."""
+        """Scan configured ZODB databases."""
         databases = []
+
+        # mountable databases - since Zope-2.7.0
         if getConfiguration:
             configuration = getConfiguration()
             names = configuration.dbtab.listDatabaseNames()
@@ -189,10 +193,13 @@ class SystemScanner:
                     'name': name,
                     'mount_point': mount_paths[name],
                     'location': database.getName(),
-                    # TODO: format as link to source if path, not text
+                    # TODO: scan_system_databases() - format location as link
+                    # - must check if filepath before!
                     'size': format_filesize(database.getSize()),
                     'object_count': object_count,
                 })
+
+        # there can only be one
         else:
             databases.append({
                 'name': basename(
@@ -203,6 +210,7 @@ class SystemScanner:
                     self.getPhysicalRoot().Control_Panel.db_size()),
                 'object_count': None,
             })
+
         return databases
 
     def scan_system_dav_locks(self, form_id, path):
@@ -218,9 +226,11 @@ class SystemScanner:
         return []  # TODO: scan_system_zodb_connections()
 
     def scan_system_config(self, form_id, path, order_by='key'):
-        """Scan server configuration."""
+        """Scan Zope server configuration."""
         config_items = []
         format_type_and_value = self.format_type_and_value
+
+        # configuration file - since Zope-2.7.0
         if getConfiguration:
             config = getConfiguration()
             keys = list(config.__dict__.keys())
@@ -235,6 +245,8 @@ class SystemScanner:
                     'type': config_type['name'],
                     'value': formatted_value,
                 })
+
+        # environment variables
         else:
             for key in [
                 # Zope installation

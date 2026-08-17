@@ -35,7 +35,7 @@ def format_datetime(ts=None, zdt=None):
 
 
 def format_duration(seconds):
-    """Format human readable a duration."""
+    """Format a duration in human readable format."""
     result = []
     days = int(seconds / 86400)
     seconds = seconds - (days * 86400)
@@ -57,7 +57,7 @@ def format_duration(seconds):
 
 
 def format_filesize(size):
-    """Format human readable a filesize."""
+    """Format a filesize in human readable format."""
     if size >= 1073741824:
         return '%.1f GB' % (size / 1073741824.0)
     if size >= 1048576:
@@ -73,9 +73,10 @@ def format_filesize(size):
 # Value Types
 
 
-# TODO: finish value type lists
-# https://docs.python.org/2.7/reference/datamodel.html#types
-# https://docs.python.org/2.7/library/stdtypes.html#other-built-in-types
+# TODO: values.py - finish value type lists
+# - see https://docs.python.org/2.7/reference/datamodel.html#types
+# - see https://docs.python.org/2.7/library/stdtypes.html#other-built-in-types
+# - ... so much more! need to review all Python versions? maybe be smarter?
 
 
 zope_form_types = (
@@ -168,7 +169,7 @@ def guess_value_type(value):
     elif isinstance(value, number_types):
         result['category'] = 'number'
 
-    elif isinstance(value, bool):
+    elif isinstance(value, type(bool)):
         result['category'] = 'boolean'
     elif value is None:
         result['category'] = 'none'
@@ -187,7 +188,12 @@ class ValueScanner:
         self, value, form_id, path, object_id, force_format=None,
         value_type=None, css_class=None
     ):
-        """Format type and value for safe inclusion in HTML."""
+        """Format type and value for safe inclusion in HTML.
+
+        The type of value and the format to use are determined automatically by
+        default but may be overriden. Custom CSS classes may be specified,
+        which will be included to the formatted output.
+        """
         type_name = None
         formatted_value = None
 
@@ -197,28 +203,37 @@ class ValueScanner:
         use_format = force_format or value_type['category']
 
         def format_object(value, form_id, path, object_id):
+            """Format an object."""
             formatted_value = html_quote(repr(value))
-            if path and object_id:
+            if path is not None and object_id is not None:
                 formatted_value = '<a href="%s/%s?path=%s/%s">%s</a>' % (
                     self.scanner_url(), form_id, path, object_id,
                     formatted_value)
             return formatted_value
 
+            # since , until Zope-2.13.30
         def format_icon(value, use_format):
+            """Format a Zope icon according to specified format."""
+            # since Zope-4.0.0
             if use_format == 'zope_icon_zmi_icon':
                 return (
                     '<span class="icon"><i class="%s"></i></span>' % value)
+
+            # since Zope-2.5.0, until Zope-2.13.30
             elif use_format == 'zope_icon_om_icons':
                 formatted_value = ''
                 for item in value:
                     formatted_value = formatted_value + (
                         '<span class="icon"><img src="%s"></span>' % value)
                 return formatted_value
+
+            # until Zope-2.13.30
             elif use_format == 'zope_icon_icon':
                 return (
                     '<span class="icon"><img src="%s"></span>' % value)
 
         def format_icon_of_object(value):
+            """Identify the type of Zope icon and format accordingly."""
             if hasattr(value, 'zmi_icon'):
                 return format_icon(value.zmi_icon, 'zope_icon_zmi_icon')
             elif hasattr(value, 'om_icons'):
@@ -226,20 +241,27 @@ class ValueScanner:
             elif hasattr(value, 'icon'):
                 return format_icon(value.icon, 'zope_icon_icon')
 
+        # Zope icons
         if use_format.startswith('zope_icon_'):
             type_name = 'icon'
             formatted_value = '%s %s' % (
                 format_icon(value, use_format),
                 '<code>%s</code>' % html_quote(repr(value)),
             )
+
+        # Zope web forms
         elif use_format == 'zope_form':
             type_name = 'form'
             # TODO: format_type_and_value - zope_form
             formatted_value = format_object(value, form_id, path, object_id)
+
+        # Zope imagery
         elif use_format == 'zope_image':
             type_name = 'image'
             # TODO: format_type_and_value - zope_image
             formatted_value = format_object(value, form_id, path, object_id)
+
+        # Zope OFS object
         elif use_format.startswith('zope_ofs'):
             type_name = 'OFS object'
             formatted_value = '%s %s' % (
@@ -247,6 +269,7 @@ class ValueScanner:
                 format_object(value, form_id, path, object_id),
             )
 
+        # mapping
         elif use_format == 'mapping':
             type_name = value_type['type_name']
             items = []
@@ -255,6 +278,8 @@ class ValueScanner:
                     value, form_id,
                     path and ('%s/%s' % (path, object_id)), key)))
             formatted_value = '{%s}' % ', '.join(items)
+
+        # sequences
         elif use_format == 'sequence':
             type_name = value_type['type_name']
             items = []
@@ -263,32 +288,49 @@ class ValueScanner:
                     value[index], form_id,
                     path and ('%s/%s' % (path, object_id)), index))
             formatted_value = ', '.join(items)
+
+        # strings
         elif use_format == 'string':
             type_name = value_type['type_name']
             formatted_value = html_quote(repr(value))
-            # TODO: implement formatted strings?
+            # TODO: format_type_and_value() - implement formatted strings?
             # formatted_value = html_quote(str(value)).replace(
-            #     '\\n', '<br>').replace('\\t', '&nbsp;' * 4)
+            #   '\\n', '<br>').replace('\\t', '&nbsp;' * 4)
+            # css:
+            #   .formatted_value[data-format="string"] {white-space: preserve;}
+
+        # numeric (int, float, ...)
         elif use_format == 'number':
             type_name = value_type['type_name']
             formatted_value = str(value)
+
+        # booleans - True, False
         elif use_format == 'boolean':
             type_name = 'boolean'
             formatted_value = repr(value)
+
+        # None
         elif use_format == 'none':
             type_name = 'None'
             formatted_value = None
 
+        # 'placeholder' (used for development only)
         elif use_format == 'placeholder':
             type_name = 'placeholder'
             formatted_value = (
                 "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed "
                 "do eiusmod tempor incididunt ut labore et dolore magna "
                 "aliqua.")
+
+        # some type of generic object
         elif use_format == 'object':
             type_name = 'object'
             formatted_value = format_object(value, form_id, path, object_id)
 
+        # TODO format_type_and_value() - handle unknown types
+        # - maybe handle expection from guess_value_type()
+
+        # return string with the type and value formatted safe for HTML.
         return '<span class="type_and_value">%s%s</span>' % (
             type_name and
             ('<span class="value_type">%s</span>' % type_name) or

@@ -1,4 +1,4 @@
-<ul class="breadcrumbs">
+<ul id="breadcrumbs" class="breadcrumbs">
 <dtml-in breadcrumbs prefix=breadcrumb>
 	<li>
 		<a href="<dtml-var scanner_url>/<dtml-var breadcrumb_key>" class="breadcrumbs" title="<dtml-var breadcrumb_item>">
@@ -8,3 +8,6 @@
 	</li>
 </dtml-in>
 </ul>
+
+<!-- TODO: breadcrumbs.dtml - provide link back to Control Panel? -->
+<!-- TODO: breadcrumbs.dtml - allow for select input instead of just links -->

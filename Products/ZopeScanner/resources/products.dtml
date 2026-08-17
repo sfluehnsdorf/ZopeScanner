@@ -11,6 +11,10 @@
 <main class="container-fluid">
 <dtml-if "'base_class' in report">
 
+	<p class="form-help alert alert-info">
+		Base Classes are the types of object, which may be added to Zope's OFS. This includes basic content types, such as Folders and Documents (web pages), functional types, such as UserFolders or the VirtualHostMonster, as well as custom built applications.
+	</p>
+
 	<section id="products_base_class">
 		<h2>Base Class “<dtml-in "report['base_class']['name'].split('.')" prefix=part><dtml-var part_item><dtml-unless part_end>.</dtml-unless></dtml-in>”</h2>
 		<nav class="paging">
@@ -71,7 +75,7 @@
 
 	<section id="products_product_packages">
 		<h2>Product Packages</h2>
-		<div class="row_table">
+		<div class="indexed_table">
 			<table>
 				<thead>
 					<tr>
@@ -113,6 +117,7 @@
 	</div>
 
 </dtml-if>
+	<p id="top"><a href="#breadcrumbs"><i class="icon icon_up"></i><span>Back to top of page</span></a></p>
 </main>
 <dtml-var scanner_css>
 <dtml-var scanner_js>

@@ -28,6 +28,10 @@ from Products.ZopeScanner.values import format_filesize
 from Products.ZopeScanner.values import guess_value_type
 
 
+# =============================================================================
+# ObjectScanner Mix-in Class
+
+
 class ObjectScanner:
     """ObjectScanner Mix-in Class."""
 
@@ -54,13 +58,26 @@ class ObjectScanner:
         return report
 
     # -------------------------------------------------------------------------
+    # Public Interace
 
     object_form = DTMLFile('resources/object', globals())
 
     def scan_object(self, breadcrumbs, form_id, root_object, path, url_prefix):
-        """Scan object."""
+        """Scan the specified object.
+
+        form_id - identifies the scanner's form, e.g. of the SystemScanner
+        breadcrumbs - list of steps of traversal
+        root_object - the scanner's root object used for traversal
+        path - the traversable path
+        url_prefix - used for links for in forms
+        """
+        # TODO: scan_object() - revise context (breadcrumbs, form_id, etc.)
+        # - current system with breadcrumbs, form_id, root_object, path, and
+        #   url_prefix has redundancues and is error-prone
+        # TODO: scan_object() - url_prefix - unused here?
         result = {}
 
+        # retrieve object
         try:
             parents, specimen = get_object_from_path(root_object, path)
         except ObjectRetrievalError:
@@ -74,6 +91,7 @@ class ObjectScanner:
         object_record = None
         if specimen:
 
+            # scan generic object
             object_record = {
                 'info': self._scan_object_info(
                     form_id, path, specimen),
@@ -87,6 +105,7 @@ class ObjectScanner:
                     form_id, path, specimen),
             }
 
+            # scan Zope OFS object
             if isinstance(specimen, Item):
                 object_record.update({
                     'ofs_info': self._scan_object_ofs_info(
@@ -111,6 +130,7 @@ class ObjectScanner:
                         form_id, path, specimen),
                 })
 
+            # identify object
             object_type = (
                 hasattr(specimen, '__class__') and
                 specimen.__class__.__name__ or
@@ -122,6 +142,7 @@ class ObjectScanner:
             if isinstance(specimen, Item):
                 object_title = getattr(specimen, 'title', None)
 
+            # update object record
             object_record.update({
                 'path': path,
                 'type': object_type,
@@ -129,18 +150,19 @@ class ObjectScanner:
                 'title': object_title,
             })
 
+        # update breadcrumbs
         step_path = str(breadcrumbs[len(breadcrumbs) - 1][0])
         step_path = step_path + (
             '?path=' not in step_path and
             '?path=' or
             ''
         )
-
         for key, item in parents[len(breadcrumbs):]:
             step_path = '%s/%s' % (step_path, key)
             step_label = get_id_of_object(item) or key
             breadcrumbs.append((step_path, step_label))
 
+        # update record
         result.update({
             'breadcrumbs': breadcrumbs,
             'object': object_record,
@@ -151,6 +173,7 @@ class ObjectScanner:
     # -------------------------------------------------------------------------
 
     def _scan_object_info(self, form_id, path, specimen):
+        """Return identifying information of specimen."""
         format_type_and_value = self.format_type_and_value
         result = []
         result.append(('repr', html_quote(repr(specimen))))
@@ -187,9 +210,13 @@ class ObjectScanner:
         return result
 
     def _scan_object_callables(self, form_id, path, specimen):
+        """Return list of callables of specimen."""
         result = []
         for key in dir(specimen):
-            value = getattr(specimen, key, None)
+            try:
+                value = getattr(specimen, key, None)
+            except Exception:  # TODO: review Exception
+                pass
             if (
                 # callable(value) or
                 (callable(value) and getattr(value, '__func__', None)) or
@@ -223,6 +250,7 @@ class ObjectScanner:
         return result
 
     def _scan_object_attributes(self, form_id, path, specimen):
+        """Return list of attributes of specimen."""
         result = []
         instance_attribute_keys = []
         if hasattr(specimen, '__dict__'):
@@ -230,7 +258,9 @@ class ObjectScanner:
         format_type_and_value = self.format_type_and_value
         for key in dir(specimen):
             if not hasattr(specimen, key):
-                continue  # TODO: handle properly / what's going on here?
+                continue  # TODO: _scan_object_attributes() - handle missing
+                # what's going on here? name was provided by dir(), maybe
+                # happening with C-classes?
             value = getattr(specimen, key)
             attr_type = guess_value_type(value)
             formatted_value = format_type_and_value(value, form_id, path, key)
@@ -247,6 +277,7 @@ class ObjectScanner:
         return result
 
     def _scan_object_sequence_items(self, form_id, path, specimen):
+        """Return sequenced items of specimen."""
         result = []
         try:
             if guess_value_type(specimen)[0] != 'sequence':
@@ -263,6 +294,7 @@ class ObjectScanner:
         return result
 
     def _scan_object_mapping_items(self, form_id, path, specimen):
+        """Return mapped items of specimen."""
         result = []
         try:
             if hasattr(specimen, 'keys'):
@@ -278,6 +310,7 @@ class ObjectScanner:
     # -------------------------------------------------------------------------
 
     def _scan_object_ofs_info(self, form_id, path, specimen):
+        """Return identifying information of OFS object."""
         result = []
         format_type_and_value = self.format_type_and_value
         try:
@@ -338,38 +371,51 @@ class ObjectScanner:
                 specimen.absolute_url(), form_id, path, 'absolute_url')))
         except Exception:  # TODO: review Exception
             pass
-        # TODO: split absolute_url() into breadcrumbs for links
+        # TODO: _scan_object_ofs_info() - absolute_url() as breadcrumbs
+        # - split on / starting with server root's absolute_url
         return result
 
     def _scan_object_sub_objects(self, form_id, path, specimen):
+        """Return contained OFS objects of OFS container object."""
         result = []
         root_url = self.getPhysicalRoot().absolute_url()
         for object_id, ofs_object in specimen.objectItems():
+
+            # since Zope-4.0.0
             zmi_icon = getattr(ofs_object, 'zmi_icon', None)
             zmi_icon_formatted = (
                 zmi_icon and
                 '<i class="%s"></i>' % zmi_icon or
                 '')
+
+            # since Zope-2.5.0, until Zope-2.13.30
             om_icons = getattr(ofs_object, 'om_icons', None)
             om_icons_formatted = ''
             if om_icons:
                 for om_icon in om_icons():
                     om_icons_formatted = om_icons_formatted + (
                         '<img src="%s/%s">' % (root_url, om_icon['path']))
+
+            # until Zope-2.13.30
             icon = getattr(ofs_object, 'icon', None)
             icon_formatted = (
                 icon and
                 '<img src="%s/%s">' % (root_url, icon) or
                 '')
+
             size = (
                 hasattr(aq_base(ofs_object), 'get_size') and
                 ofs_object.get_size() or
                 None
             )
+
             modified = getattr(ofs_object, '_p_mtime', None)
+
+            # since Zope-2.4.0
             lock = None
-            if hasattr(ofs_object, 'wl_isLocked'):  # since Zope-2.4.0
+            if hasattr(ofs_object, 'wl_isLocked'):
                 lock = ofs_object.wl_isLocked() and True or False
+
             result.append({
                 'id': object_id,
                 'title': ofs_object.title,
@@ -384,42 +430,36 @@ class ObjectScanner:
                 'size': size or '',
                 'size_formatted': size and format_filesize(size) or '',
                 'modified': modified and format_datetime(ts=modified) or '',
-                # TODO: position in orderable containers
+                # TODO: _scan_object_sub_objects() - position in OrderedFolder
             })
+
         result = sort_by_key(result, 'id')
         return result
 
     def _scan_object_properties(self, form_id, path, specimen):
-        # TODO: property sheets ?
+        """Return Properties (custom attributes) of OFS object."""
         result = []
+        zope_properties = []
         try:
-            for key, item in specimen.propertyItems():
-                result.append({
-                    'id': key,
-                    'title': item.get('title', None),
-                    'type': item.get('type', None),
-                    'mode': item.get('mode', None),
-                    'options': '',  # TODO: select_variable et al
-                })
-            result = sort_by_key(result, 0)
-            return result
-        except Exception:  # TODO: review Exception
-            try:
-                for item in specimen._properties:
-                    result.append({
-                        'id': item['id'],
-                        'title': item.get('title', None),
-                        'type': item.get('type', None),
-                        'mode': item.get('mode', None),
-                        'options': '',  # TODO: select_variable et al
-                    })
-                return result
-            except Exception:  # TODO: review Exception
-                return None
+            for item in specimen._properties:
+                zope_properties.append((item['id'], item))
         except Exception:  # TODO: review Exception
             return None
+        for key, item in zope_properties:
+            result.append({
+                'id': key,
+                'title': item.get('title', None),
+                'type': item.get('type', None),
+                'mode': item.get('mode', None),
+                'options': '',
+                # TODO: _scan_object_properties() - property's options
+                # - select_variable, etc.
+            })
+        result = sort_by_key(result, 'id')
+        return result
 
     def _scan_object_permissions(self, form_id, path, specimen):
+        """Return local and acquired permissions of OFS object."""
         result = {}
         try:
             result['valid_roles'] = specimen.valid_roles()
@@ -430,7 +470,8 @@ class ObjectScanner:
                 permission_roles = permission_object.getRoles(default=[])
                 if isinstance(permission_roles, list):
                     acquired = True
-                    roles = []  # TODO: get acquired roles
+                    # TODO: _scan_object_permissions() - get acquired roles
+                    roles = []
                 else:
                     acquired = False
                     roles = permission_roles
@@ -445,6 +486,7 @@ class ObjectScanner:
             return None
 
     def _scan_object_roles(self, form_id, path, specimen):
+        """Return local and acquired roles of OFS object."""
         result = []
         try:
             permission_map = {}
@@ -463,7 +505,7 @@ class ObjectScanner:
                 unassigned_permissions = []
                 for key in permission_map.keys():
                     if permission_map[key] is None:
-                        # TODO: get_acquired_permission
+                        # TODO: _scan_object_roles() get_acquired_permission
                         # permissions.append((key, 'allow_acq'))
                         permissions.append((key, 'deny_acq'))
                     elif valid_role in permission_map[key]:
@@ -482,6 +524,7 @@ class ObjectScanner:
             return None
 
     def _scan_object_ownership(self, form_id, path, specimen):
+        """Return ownership information of OFS object."""
         result = []
         if hasattr(specimen, 'getOwnerTuple'):
             owner = specimen.getOwnerTuple()
@@ -509,6 +552,12 @@ class ObjectScanner:
         return result
 
     def _scan_object_undoable(self, form_id, path, specimen):
+        """Return list of undoable transactions (object changes).
+
+        Undo reverts the state of the ZODB to an earlier transation, which can
+        have an unexpected side effects. It should be used sparingly, ideally
+        only ever in a development environment.
+        """
         result = []
         if Prefix:
             specifications = {'user_name': Prefix and Prefix('') or None}
@@ -523,7 +572,7 @@ class ObjectScanner:
                 0, maxsize, specifications)
             format_type_and_value = self.format_type_and_value
             for transaction in transactions:
-                size = transaction['size']
+                size = transaction.get('size')
                 result.append({
                     'datetime': format_datetime(ts=transaction['time']),
                     'id': format_type_and_value(
@@ -539,10 +588,14 @@ class ObjectScanner:
         return result
 
     def _scan_object_history(self, form_id, path, specimen):
+        """Return list of historical revisions (content changes) of OFS object.
+
+        Historical revisions allow reviewing chanes done to the content of an
+        object for which the ZMI provides a diff-style comparison.
+        """
         result = []
         try:
-            # TODO: fix _scan_object_history()
-            # no revisions returned, but also no errror...
+            # TODO: _scan_object_history() - fix
             revisions = specimen._p_jar.db().history(
                 specimen._p_oid, None, maxsize)
             if revisions:
@@ -558,13 +611,19 @@ class ObjectScanner:
                             revision, form_id, None, None),
                     })
             else:
-                pass  # TODO: review - "history not supported"
+                pass  # TODO: _scan_object_history() review
+                # - comment was "history not supported"
         except Exception:  # TODO: review Exception
             pass
-        result = sort_by_key(result, 0)
+        result = sort_by_key(result, 'serial')
         return result
 
     def _scan_object_manage_options(self, form_id, path, specimen):
+        """Return list of management options (ZMI menu options) of OFS object.
+
+        Supports the MutliTabs Product, which is patch for hierarchical ZMI
+        menus.
+        """
 
         def iterate_manage_options(options, prefix=''):
             result = []
@@ -589,10 +648,14 @@ class ObjectScanner:
         return result
 
     def _scan_object_forms_images(self, form_id, path, specimen):
+        """Return list of forms and images of the ZMI and/or public UI."""
         result = []
         format_type_and_value = self.format_type_and_value
         for key in dir(specimen):
-            value = getattr(specimen, key, None)
+            try:
+                value = getattr(specimen, key, None)
+            except Exception:  # TODO: review Exception
+                pass
             if value:
                 value_type = guess_value_type(value)
                 if value_type['category'] in ['zope_form', 'zope_image']:

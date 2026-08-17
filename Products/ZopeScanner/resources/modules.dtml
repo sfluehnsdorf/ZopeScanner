@@ -14,6 +14,10 @@
 	<section id="modules_module">
 		<h2>Module “<dtml-in "report['module']['name'].split('.')" prefix=part><dtml-var part_item><dtml-unless part_end>.</dtml-unless></dtml-in>”</h2>
 
+		<p class="form-help alert alert-info">
+			A module is part of a package and extends the capabilities of the Python programming language.
+		</p>
+
 		<nav class="paging">
 			<dtml-let
 				prev="report['module']['prev']"
@@ -57,11 +61,8 @@
 
 	</section>
 
-<dtml-try>
+<!-- TODO: modules.dtml - proper autodocs instead of object scan -->
 <dtml-var object_form>
-<dtml-except>
-	nope
-</dtml-try>
 
 <dtml-elif path>
 <dtml-var object_form>
@@ -69,12 +70,18 @@
 
 	<section id="modules_module_packages">
 		<h2>Module Packages</h2>
+
+		<p class="form-help alert alert-info">
+			Browser for all imported modules, including the Python standard library, the Zope server, and any other installed package.
+			Packages may consist of a single module or provide extensive trees of any number of sub modules.
+		</p>
+
 		<div class="tags">
 		<dtml-in "report['modules']" prefix=package sort>
 			<a class="tag" href="#<dtml-var package_key>"><dtml-var package_key></a>
 		</dtml-in>
 		</div>
-		<div class="row_table">
+		<div class="indexed_table">
 			<table>
 				<thead>
 					<tr>
@@ -103,6 +110,7 @@
 	</div>
 
 </dtml-if>
+	<p id="top"><a href="#breadcrumbs"><i class="icon icon_up"></i><span>Back to top of page</span></a></p>
 </main>
 <dtml-var scanner_css>
 <dtml-var scanner_js>

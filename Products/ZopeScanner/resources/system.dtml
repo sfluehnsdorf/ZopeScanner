@@ -13,6 +13,10 @@
 <dtml-var object_form>
 <dtml-else>
 
+	<p class="form-help alert alert-info">
+		System information encompasses all global settings of Zope, Python, the OS (operating system), and the host machine itself.
+	</p>
+
 	<section id="system_toc">
 		<header>
 			<h3>Contents</h3>
@@ -132,7 +136,7 @@
 				<span class="button toggle_control_hide" onclick="return hideToggleView(this);">hide</span>
 			</a>
 		</header>
-		<div class="row_table">
+		<div class="indexed_table">
 			<table>
 				<thead>
 					<tr>
@@ -173,7 +177,7 @@
 				<span class="button toggle_control_hide" onclick="return hideToggleView(this);">hide</span>
 			</a>
 		</header>
-		<div class="row_table">
+		<div class="indexed_table">
 			<table>
 				<thead>
 					<tr>
@@ -247,7 +251,7 @@
 				<span class="button toggle_control_hide" onclick="return hideToggleView(this);">hide</span>
 			</a>
 		</header>
-		<div class="row_table">
+		<div class="indexed_table">
 			<table>
 				<thead>
 					<tr>
@@ -281,7 +285,7 @@
 				<span class="button toggle_control_hide" onclick="return hideToggleView(this);">hide</span>
 			</a>
 		</header>
-		<div class="row_table">
+		<div class="indexed_table">
 			<table>
 				<thead>
 					<tr>
@@ -307,6 +311,7 @@
 	</dtml-if>
 
 </dtml-if>
+	<p id="top"><a href="#breadcrumbs"><i class="icon icon_up"></i><span>Back to top of page</span></a></p>
 </main>
 <dtml-var scanner_css>
 <dtml-var scanner_js>

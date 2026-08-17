@@ -1,6 +1,7 @@
 """Zope Scanner - Shared Resources."""
 
 
+from Products.ZopeScanner.imports_zope import DTMLFile
 from Products.ZopeScanner.imports_zope import Item
 
 
@@ -9,6 +10,10 @@ __all__ = [
     'sort_by_key',
     'token_sort_by_key',
 ]
+
+
+# =============================================================================
+# Sorting
 
 
 try:  # until Python-2.7.18
@@ -32,10 +37,15 @@ def sort_by_key(items, key):
     return items
 
 
-# TODO: implement (maybe rename) human readable sort function
+# TODO: shared.py - token_sort_by_key() - implement (maybe rename)
+# human readable sort function
 # - for example: '__A', '__a', '_A', '_a', 'A', 'a'
 # - for example: '5', '10', '15', '20', '25'
 token_sort_by_key = sort_by_key
+
+
+# =============================================================================
+# Object Retrieval
 
 
 class ObjectRetrievalError(Exception):
@@ -90,6 +100,10 @@ def get_object_from_path(root_object, path):
     return parents, item
 
 
+# =============================================================================
+# OFS object id
+
+
 def get_id_of_object(specimen):
     """Return the id of an OFS object."""
     object_id = None
@@ -110,3 +124,43 @@ def get_id_of_object(specimen):
     if object_id is None and hasattr(specimen, '__name__'):
         object_id = specimen.__name__
     return object_id
+
+
+# =============================================================================
+# Shared Mixin
+
+
+class Shared:
+    """Shared Mix-in Class."""
+
+    # ------------------------------------------------
+    # User Interface
+
+    # TODO: class Shared - revise UI
+    # - scanner_header - with css, js
+    # - scanner_footer - with call to scanner_session including unicode
+    # - simplify breadcrumbs
+    # - helper methods for links, forms, path traversal, etc.
+    #   see link_params in sources.py
+    #   - link() function with link_params might be a simple system to create
+    #   - links and forms with session variables.
+    #   - DO NOT USE COOKIES! Zope uses them, but we don't want to make _any_
+    #     changes and leave artefacts
+
+    def scanner_url(self):
+        """Return this instance's absolute URL."""
+        return self.absolute_url()
+
+    scanner_css = DTMLFile('resources/css', globals())
+
+    scanner_js = DTMLFile('resources/js', globals())
+
+    def scanner_unicode(self, REQUEST):
+        """Force encoding of the response to Unicode."""
+        REQUEST.RESPONSE.setHeader('Content-Type', 'text/html;charset=UTF8')
+        try:
+            return unicode('')
+        except NameError:
+            return ''
+
+    breadcrumbs_html = DTMLFile('resources/breadcrumbs', globals())

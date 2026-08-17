@@ -2,6 +2,7 @@
 
 	<header>
 		<h2>
+			Object
 			<span class="value_type"><dtml-if "report['object'].get('type')"><dtml-var "report['object']['type']" html_quote><dtml-else>Object</dtml-if></span>
 			<dtml-if "report['object'].get('id')"><dtml-var "repr(report['object']['id'])" html_quote></dtml-if>
 			<dtml-if "report['object'].get('title')">&ldquo;<dtml-var "report['object']['title']" html_quote>&rdquo;</dtml-if>
@@ -91,7 +92,7 @@
 			</a>
 		</header>
 		<!-- TODO: #object.callables - add switch to toggle display of docstring -->
-		<div class="row_table">
+		<div class="indexed_table">
 			<table>
 				<thead>
 					<tr>
@@ -136,7 +137,7 @@
 				<span class="button toggle_control_hide" onclick="return hideToggleView(this);">hide</span>
 			</a>
 		</header>
-		<div class="row_table">
+		<div class="indexed_table">
 			<table>
 				<thead class="vertical">
 					<tr>
@@ -175,7 +176,7 @@
 				<span class="button toggle_control_hide" onclick="return hideToggleView(this);">hide</span>
 			</a>
 		</header>
-		<div class="row_table">
+		<div class="indexed_table">
 			<table>
 				<thead>
 					<tr>
@@ -205,7 +206,7 @@
 				<span class="button toggle_control_hide" onclick="return hideToggleView(this);">hide</span>
 			</a>
 		</header>
-		<div class="row_table">
+		<div class="indexed_table">
 			<table>
 				<thead>
 					<tr>
@@ -273,7 +274,8 @@
 				<span class="button toggle_control_hide" onclick="return hideToggleView(this);">hide</span>
 			</a>
 		</header>
-		<div class="row_table">
+		<!-- TODO: link to object's folder form -->
+		<div class="indexed_table">
 			<table>
 				<thead>
 					<tr>
@@ -301,7 +303,7 @@
 							<dtml-var "sub_object_item['om_icons_formatted']">
 							<dtml-var "sub_object_item['icon_formatted']">
 						</div></td>
-						<td><div><dtml-var "sub_object_item['meta_type']"></div></td>
+						<td><div><dtml-var "sub_object_item['meta_type']"></div></td>  <!-- TODO: link to product's base class -->
 						<td><div class="number split">
 							<span><dtml-var "sub_object_item['size_formatted']"></span>
 							<span><dtml-var "sub_object_item['size']"></span>
@@ -324,7 +326,8 @@
 				<span class="button toggle_control_hide" onclick="return hideToggleView(this);">hide</span>
 			</a>
 		</header>
-		<div class="row_table">
+		<!-- TODO: link to object's properties form -->
+		<div class="indexed_table">
 			<table>
 				<thead>
 					<tr>
@@ -361,7 +364,8 @@
 				<span class="button toggle_control_hide" onclick="return hideToggleView(this);">hide</span>
 			</a>
 		</header>
-		<div class="row_table">
+		<!-- TODO: link to object's permission form -->
+		<div class="indexed_table">
 			<table>
 				<thead>
 					<tr>
@@ -411,7 +415,8 @@
 				<span class="button toggle_control_hide" onclick="return hideToggleView(this);">hide</span>
 			</a>
 		</header>
-		<div class="row_table">
+		<!-- TODO: link to object's role form -->
+		<div class="indexed_table">
 			<table>
 				<thead class="vertical">
 					<tr>
@@ -452,7 +457,8 @@
 				<span class="button toggle_control_hide" onclick="return hideToggleView(this);">hide</span>
 			</a>
 		</header>
-		<div class="row_table">
+		<!-- TODO: link to object's ownership form -->
+		<div class="indexed_table">
 			<table>
 				<thead>
 					<tr>
@@ -484,7 +490,8 @@
 				<span class="button toggle_control_hide" onclick="return hideToggleView(this);">hide</span>
 			</a>
 		</header>
-		<div class="row_table">
+		<!-- TODO: link to object's undo form -->
+		<div class="indexed_table">
 			<table>
 				<thead>
 					<tr>
@@ -526,7 +533,8 @@
 				<span class="button toggle_control_hide" onclick="return hideToggleView(this);">hide</span>
 			</a>
 		</header>
-		<div class="row_table">
+		<!-- TODO: link to object's history form -->
+		<div class="indexed_table">
 			<table>
 				<thead>
 					<tr>
@@ -562,7 +570,7 @@
 				<span class="button toggle_control_hide" onclick="return hideToggleView(this);">hide</span>
 			</a>
 		</header>
-		<div class="row_table">
+		<div class="indexed_table">
 			<table>
 				<thead>
 					<tr>
@@ -595,7 +603,7 @@
 				<span class="button toggle_control_hide" onclick="return hideToggleView(this);">hide</span>
 			</a>
 		</header>
-		<div class="row_table">
+		<div class="indexed_table">
 			<table>
 				<thead>
 					<tr>

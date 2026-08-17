@@ -1,15 +1,27 @@
 <dtml-let
-  path="REQUEST.get('path', '')"
-  report="scan_objects(path)"
-  breadcrumbs="report['breadcrumbs']"
-  >
+	path="REQUEST.get('path', '')"
+	report="scan_objects(path)"
+	breadcrumbs="report['breadcrumbs']"
+>
 <dtml-var manage_page_header>
 <dtml-let MANAGE_TABS_NO_BANNER="1">
 <dtml-var manage_tabs>
 </dtml-let>
 <dtml-var breadcrumbs_html>
 <main class="container-fluid">
+<unless path>
+
+	<div>
+		<p class="form-help alert alert-info">
+			The object scanner provides comprehensive reports on any object, identified by path.
+			It recognizes OFS object and extends the report with respective information.
+			It starts at the root of Zope's OFS, allowing you to browse the OFS objects stored within.
+		</p>
+	</div>
+
+</unless>
 <dtml-var object_form>
+	<p id="top"><a href="#breadcrumbs"><i class="icon icon_up"></i><span>Back to top of page</span></a></p>
 </main>
 <dtml-var scanner_css>
 <dtml-var scanner_js>

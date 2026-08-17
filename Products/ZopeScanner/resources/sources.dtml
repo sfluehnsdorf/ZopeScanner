@@ -18,13 +18,31 @@
 <dtml-var breadcrumbs_html>
 <main class="container-fluid">
 
+	<div>
+		<p class="form-help alert alert-info">
+			Web based file browser of the Zope server and the Python programming language.
+			Access to files outside these rootpaths is impossible.
+		</p>
+		<p class="error-message">
+			Please note that only directory and a hexdump viewers are implemented.
+		</p>
+	</div>
+
 	<dtml-if "report.get('exception')">
 
-
-
-<!-- TODO !!! -->
-
-
+		<section id="sources_error">
+			<header>
+				<h3>Error "<dtml-var "report['exception'].key">"</h3>
+			</header>
+			<div class="error-message">
+				<p>
+					An unexpected error occured while retrieving or scanning the requested file.
+				</p>
+				<p>
+					You may choose to return to the <a href="<dtml-var "breadcrumbs[-1][0]">">last file found while traversing the path</a>, named <strong><dtml-var "breadcrumbs[-1][1]"></strong>.
+				</p>
+			</div>
+		</section>
 
 	<dtml-elif "report.get('directory')">
 	<section id="products_base_class">
@@ -66,7 +84,7 @@
 			</div>
 		</form>
 
-		<div class="row_table">
+		<div class="indexed_table">
 			<table>
 				<thead>
 					<tr>
@@ -107,7 +125,7 @@
 			<span class="value_type">File Archive</span>
 			<dtml-var "report['filename']" html_quote>
 		</h2>
-		<!-- TODO: archive view -->
+		<!-- TODO: sources.dtml - archive view -->
 	</section>
 
 
@@ -117,7 +135,7 @@
 			<span class="value_type">Audio File</span>
 			<dtml-var "report['filename']" html_quote>
 		</h2>
-		<!-- TODO: audio view -->
+		<!-- TODO: sources.dtml - audio view -->
 	</section>
 
 
@@ -127,7 +145,7 @@
 			<span class="value_type">Image File</span>
 			<dtml-var "report['filename']" html_quote>
 		</h2>
-		<!-- TODO: image view -->
+		<!-- TODO: sources.dtml - image view -->
 	</section>
 
 
@@ -137,7 +155,7 @@
 			<span class="value_type">Video File</span>
 			<dtml-var "report['filename']" html_quote>
 		</h2>
-		<!-- TODO: video view -->
+		<!-- TODO: sources.dtml - video view -->
 	</section>
 
 
@@ -147,7 +165,7 @@
 			<span class="value_type">Source Code</span>
 			<dtml-var "report['filename']" html_quote>
 		</h2>
-		<!-- TODO: source view -->
+		<!-- TODO: sources.dtml - source view -->
 	</section>
 
 
@@ -157,7 +175,7 @@
 			<span class="value_type">Text File</span>
 			<dtml-var "report['filename']" html_quote>
 		</h2>
-		<!-- TODO: text view -->
+		<!-- TODO: sources.dtml - text view -->
 	</section>
 
 
@@ -217,8 +235,7 @@
 			</div>
 		</form>
 
-<dtml-try>
-		<div class="row_table">
+		<div class="indexed_table">
 			<table>
 				<thead>
 					<tr>
@@ -236,30 +253,18 @@
 						<dtml-in "range(bytes_per_row)" prefix=row>
 						<td><div class="narrow"><dtml-if "position_item + row_item < contents_len"><dtml-var "'%02x' % ord(contents[position_item + row_item])"><dtml-else>&nbsp;</dtml-if></div></td>
 						</dtml-in>
-						<td><div class="code" style="white-space: preserve;"><dtml-in "range(bytes_per_row)" prefix=row><dtml-if "position_item + row_item < contents_len"><dtml-if "ord(contents[position_item + row_item]) in displayable_ascii_bytes"><dtml-var "contents[position_item + row_item]" html_quote><dtml-else>.</dtml-if><dtml-else> </dtml-if></dtml-in></div></td>
+						<td><div class="code preserve_whitespace"><dtml-in "range(bytes_per_row)" prefix=row><dtml-if "position_item + row_item < contents_len"><dtml-if "ord(contents[position_item + row_item]) in displayable_ascii_bytes"><dtml-var "contents[position_item + row_item]" html_quote><dtml-else>.</dtml-if><dtml-else> </dtml-if></dtml-in></div></td>
 					</tr>
 				</tbody>
 				</dtml-in>
 			</table>
 		</div>
-<dtml-except>
-	<div class="DEBUG">
-		<dl>
-
-			<dt>bytes_per_row</dt>
-			<dd><dtml-var "repr(bytes_per_row)" html_quote></dd>
-
-			<dt>report</dt>
-			<dd><dtml-var "repr(report)" html_quote></dd>
-
-		</dl>
-	</div>
-</dtml-try>
 
 	</section>
 	</dtml-let>
 	</dtml-if>
 
+	<p id="top"><a href="#breadcrumbs"><i class="icon icon_up"></i><span>Back to top of page</span></a></p>
 </main>
 <dtml-var scanner_css>
 <dtml-var scanner_js>
